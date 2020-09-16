@@ -1,0 +1,15 @@
+\mainmatter
+
+# x40服务器 {#x40 .unnumbered}
+
+本文将称我们IP地址结尾64服务器为x40服务器。
+
+> $64_{10} = 40_{16}$, 且其型号为R940xa，称之为x40服务器简直合情合理！
+
+## 基本硬件信息
+
+> CPU: 4 × Intel Xeon Gold 6136 @ 3.00GHz    
+> GPU: 1 × Nvidia Titan V
+
+CPU共48核心96线程。GPU有5120个cuda核心，12GB显示内存。
+

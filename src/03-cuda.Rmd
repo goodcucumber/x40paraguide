@@ -1,0 +1,479 @@
+# (PART) GPGPU {-} 
+
+# GPU简介 {#gpuintro}
+
+GPU，即 Graphics Processing Unit，顾名思义，是用来处理图形的。那它可能就要问了，我明明是用来处理图形的，怎么就跑来做通用计算了呢？卡的一生啊，不可预料……    
+
+## 图形处理是怎么回事？ {#gpu_about}
+
+> _色不异空，空不异色；色即是空，空即是色。——《般若波罗蜜多心经》_
+
+首先来简单解一下图形处理的本质是什么。    
+来看看我们在玩游戏的时候，立体图像是怎么显示到显示器上的。首先，立体模型是以三角形的方式组织的。把一个立体模型的表面分成一个一个的三角形，把三角形们的顶点和法向量组织起来，就可以表示一个模型了。使用的三角形越小，模型就越细腻。为了把这个模型显示出来，我们先拿到所有顶点的坐标，根据从屏幕看过去的角度和举例将顶点做坐标变换。然后根据顶点的连接情况把顶点变成三角形，算出投影在屏幕上的坐标。变换完再根据环境光照、物体材质等等信息，把三角形涂上颜色。（这只是大致的工作流程，可能与实际情况不完全相同，但是有那个意思。）    
+
+没什么感觉？再仔细想想，是不是对于每个顶点的处理来说，完全不用关心其他顶点的情况？而且对于每个顶点的处理其实都是非常简单的运算（坐标变换什么的）。于是GPU就这么被设计出来了。
+
+## 那GPGPU是啥？ {#gpu_gpgpu}
+
+> _一个人的命运啊，当然要靠自我奋斗，但是也要考虑到历史的行程。——他_
+
+GPU本来就是为了绘图而设计的。但是某一天，它的计算能力超过CPU了！主要是GPU的核心数量越来越多，虽然单个核心和CPU比起来要菜不少，但是人家核多啊！于是，这种算得快的能力被利用起来，搞出了GPGPU，也就是 General-Purpose computing on Graphics Processing Units，让显卡来做通用计算。    
+
+比较完善的GPU编程库（库？）有CUDA和OpenCL。OpenCL可以运行在CPU、GPU甚至FPGA之类的设备上，而CUDA只能运行在Nvidia的显卡上。然而现今CUDA发展远好于OpenCL。    
+
+我个人感觉CUDA用起来要简单一些。
+
+# CUDA {#cuda}
+
+CUDA (Compute Unified Device Architecture) 是Nvidia推出的用于自家显卡的并行计算技术。这里将介绍如何使用CUDA来进行并行运算。
+
+## 开始之前 {#before_start}
+
+> _工欲善其事，必先利其器。——《论语》_
+
+CUDA需要gcc版本高于5，推荐的版本是9.x。服务器上已经安装了gcc9.3.0，可以直接load
+
+```{bash, eval=F}
+module load gcc/9.3.0
+```
+
+
+之后，要装载cuda的module
+
+```{bash, eval=F}
+module load cuda/11.0.3
+```
+
+这样，nvcc编译器和各种库就添加到环境变量里面了。
+
+## 我的第一个cuda程序 {#cuda_first}
+
+> _信じる心があなたの魔法！——『リトルウィッチアカデミア』_
+
+还是之前的先乘后加。我们把计算过程放到GPU上去做。
+
+```{c muladd,cu, eval=FALSE}
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <cuda_runtime.h>
+
+__global__ void muladd(double* a, double* b, double* c, double* d,
+                       unsigned int N){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int j;
+    if(id < N){
+        for(j = 0; j < 1000000; j++){
+            d[id] = a[id] * b[id] + c[id];
+        }
+    }
+}
+
+int main(){
+    double* a; 
+    double* b; 
+    double* c; 
+    double* d;
+
+    double* cua;
+    double* cub;
+    double* cuc;
+    double* cud;
+
+    a = (double*)(malloc(8192*sizeof(double)));
+    b = (double*)(malloc(8192*sizeof(double)));
+    c = (double*)(malloc(8192*sizeof(double)));
+    d = (double*)(malloc(8192*sizeof(double)));
+
+    cudaMalloc(&cua, 8192*sizeof(double));
+    cudaMalloc(&cub, 8192*sizeof(double));
+    cudaMalloc(&cuc, 8192*sizeof(double));
+    cudaMalloc(&cud, 8192*sizeof(double));
+
+    //Prepare data
+    unsigned long long i;
+    for(i = 0; i < 8192; i++){
+        a[i] = (double)(rand()%2000) / 200.0;
+        b[i] = (double)(rand()%2000) / 200.0;
+        c[i] = ((double)i)/10000.0;
+    }
+    
+    clock_t start, stop;
+    double elapsed;
+    start = clock();
+    cudaMemcpy(cua, a, 8192*sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(cub, b, 8192*sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(cuc, c, 8192*sizeof(double), cudaMemcpyHostToDevice);
+    
+    muladd<<<32, 256>>>(cua, cub, cuc, cud, 8192);
+    
+    cudaMemcpy(d, cud, 8192*sizeof(double), cudaMemcpyDeviceToHost);
+    stop = clock();
+    elapsed = (double)(stop-start) / CLOCKS_PER_SEC;
+    printf("Elapsed time = %8.6f s\n", elapsed);
+    for(i = 0; i < 8192; i++){
+        if(i % 1001 == 0){
+            printf("%5llu: %16.8f * %16.8f + %16.8f = %16.8f (%d)\n",
+                   i, a[i], b[i], c[i], d[i], d[i]==a[i]*b[i]+c[i]);
+        }
+    }
+
+    free(a);
+    free(b);
+    free(c);
+    free(d);
+    cudaFree(cua);
+    cudaFree(cub);
+    cudaFree(cuc);
+    cudaFree(cud);
+}
+
+
+```
+
+编译cuda程序要使用`nvcc`编译器。
+
+```{bash, eval=FALSE}
+  $ nvcc -fmad=false  -o cumuladd muladd.cu
+```
+
+注意这里的`-fmad=false`。nvcc默认是会把相邻的乘法和加法优化成FMA的（关于FMA，参见上一部分最后一章(\@ref(fma))）。这里关闭FMA来跟CPU同台竞技，也为了后面比较结果时不会出差错。
+
+运行一下，哇！比1s还短！
+
+（其实nvcc只负责GPU部分，剩下的会交给普通的c++编译器。不好意思，CUDA runtime API是c++的，但是众所周知，c++（基本上）和c是兼容的。所以本质上上面是一个看起来像c的c++程序😋）
+
+我们来解释一下这里都干了些啥
+
+### #include <cuda_runtime.h>
+
+大多数我们需要的功能都在 cuda_runtime.h 头文件里提供。要include进来哦！
+
+
+### `__global__ void muladd`
+
+注意`__global__`，这是CUDA对c++的扩展。常见的标签：
+
++ `__global__`,
++ `__device__`,和
++ `__host__`
++ 还有别的不常用的，可以参考cuda runtime文档
+
+`__global__`的函数可以被CPU或GPU调用，在GPU上执行。（在GPU上调用`__global__`函数似乎是在并行地运行并行程序（就是套娃🤣）。一般还是从CPU调用比较常见。）这种函数被成为“kernel”。
+
+`__device__`的函数只可以被GPU调用，在GPU上执行。这种函数一般会被编译器展开到调用处。
+
+`__host__`的函数只可以被CPU调用，在CPU上执行。和不加标签一样。
+
+`__global__`函数必须是返回值为`void`的函数，`__device__`和`__host__`则无要求。
+
+### `blockIdx`,`blockDim`和`threadIdx`
+
+一个“kernel”事实上要同时被许多核心执行，那么每个核心就需要知道自己处理的是哪个数据，要是大家抢同一个数据的话就没有意义了。CUDA设计了两级的网格——grid和block。每个grid可以包含若干个block，每个block又包含若干个thread。一个thread将会在一个核心上执行。但是要注意，每个block包含的thread数目不能超过一个最大值（应该是1024）。此外，根据程序使用的寄存器数目，一个block可以包含的thread数目可能会再小一点。（GPU的寄存器还是很多的，一般来说不用担心）此外，每个block里的thread数目最好设为32的倍数，其中原理可以参考后续章节。
+
+这里的blockIdx，blockDim和threadIdx就相当于线程的编号，用于知道自己应该取处理哪些数据。blockIdx就是block在grid中的编号，blockDim是block中thread的数目，threadIdx是thread在block中的编号。
+
+注意到后面的`.x`, CUDA允许使用最大三维的block和三维的grid。上面的程序只使用了一个维度，就只需要`.x`即可。
+
+下图展示了grid，block和thread的关系。
+
+```{r fig1, fig.cap='grid, block和thread', out.width='90%', echo=FALSE}
+knitr::include_graphics("figs/cudaf1.svg")
+```
+
+事实上也有gridDim，用来表示grid在各个维度上包含多少block。
+
+### `cudaMalloc`
+
+类似于`malloc`，但是是在显存中申请空间。第一个参数要传入一个指针的指针，函数执行完后第一个参数所指向的指针就是显存空间的指针了。第二个参数就是以byte计的空间大小。
+
+### `cudaMemcpy`
+
+用于系统内存和显存之间进行数据拷贝。第一个参数是目标指针，第二个参数是源头指针，第三个参数是要拷贝的内容的大小（byte单位），第四个参数设置拷贝方向。
+
+为什么要有第四个参数呢？其实指针类型相当于是整数，并没有标识这是系统内存的指针还是显存的指针，所以需要第四个参数说明拷贝方向。
+
+第四个参数有一下几种可选值：
+
++ `cudaMemcpyHostToHost`    
++ `cudaMemcpyHostToDevice`    
++ `cudaMemcpyDeviceToHost`    
++ `cudaMemcpyDeviceToDevice`
+
+具体作用从名字上看就很明显了。
+
+### `<<<32, 256>>>`
+
+三重尖括号也是CUDA对C++的扩展，用来表示以何种方式组织grid和block。原则上`<<<>>>`里面应该接受两个dim3类型的量。
+
+> dim3是基于uint3的类型，uint3是CUDA定义的一种矢量类型，顾名思义，就是三个unsigned int放在一起。（事实上，就是一块12字节的连续空间而已）。定义dim3变量时，未指定的维度上的数会被设置为1.    
+所以上面的`<<<>>>`里面直接写两个数字其实代表了x维度，剩下两个维度自动设置成1了。
+
+里面第一个参数是对grid的描述，第二个是对block的描述。比如要使用如图6.1的结构运行一个叫做myKernel的`__global__`函数：（假设该函数不需要参数）
+
+```{c, eval=FALSE}
+dim3 blocks(4, 4, 2); // grid包含4*4*2个block
+dim3 threadsPerBlock(8, 4, 3); // 每个block包含8*4*3个thread
+myKernel<<<blocks, threadsPerBlock>>>();
+```
+
+### `cudaFree`
+
+`cudaFree`是用来释放显存的，和c的`free`类似。    
+及时释放使用完的内存是好习惯哦😀
+
+## CUDA新增类型
+
+> _Be not afeard. The isle is full of noises, sounds and sweet airs, that give delight and hurt not.——The Tempest_
+
+除了上面提到的`dim3`之外，CUDA还提供了其他一些矢量类型，如double2，double3，double4，float2，float3，float4还有char/short/int/long/long long及其无符号系列。具体可以参考[cuda vector types](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#vector-types)。但是，这些矢量类型并不支持SIMD，甚至没有实现矢量加减法，可以把它们看成只是为了方便表示矢量而定义的类型，实际使用的时候还需自己拿每个分量去做计算。
+
+
+另外，CUDA还支持一种半精度浮点数，每个16bit（也有相应的矢量类型）。（关于计算机里的浮点数表示可以参考附录）  
+这种半精度类型可能在机器学习领域比较有用。根据CUDA的文档，使用半精度的话建议用`half2`这种矢量类型（一个`half2`是一个两维的`half`矢量），因为`half2`可以用一些特别的函数（如`__hadd2`（矢量加法）之类的，还有乘法、除法等等）在一个指令中做两个加法。这可能是CUDA唯一的SIMD操作吧。
+
+## 使用`__device__`函数 {#cuda_device}    
+
+> _不在其位，不谋其政——《论语》_
+
+一般我们写一个程序都包含许多函数，它们调用来调用去，组合成我们想要的样子。使用函数的好处在于重复的代码可以只写一次。而且当这部分功能需要改变的时候只要修改函数内容就可以了。    
+
+在CUDA里我们也可以这么做。下面我们分别实现一个乘法函数和一个加法函数，让kernel调用它们完成计算。    
+
+```{c, eval=FALSE}
+__device__ double myAdd(double a, double b){
+  return a+b;
+}
+
+__device__ void myMul(double* a, double* b, double* c){
+  *c = *a + *b;
+}
+
+__global__ void muladd(double* a, double* b, double* c, double* d,
+                       unsigned long long N){
+    unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long j;
+    if(id < N){
+        for(j = 0; j < 1000000; j++){
+            myMul(a+i, b+i, d+i);
+            d[i] = myAdd(c[i], d[i]);
+        }
+    }
+}
+
+```
+
+这里的`myAdd`和`myMul`采用了不同的写法。`myAdd`接受两个double参数，返回一个double（如前文所述，`__device__`函数并不要求void返回值）。而`myMul`则是另一种风格，直接接受三个指向double的指针，把第三个指针指向的double设为前两个指针指向的double的和。
+
+`myAdd`和一般的函数设计思路是一致的。但是当你想要从一组参数获得多种返回值的时候，`myMul`的设计思路可能会变得非常有用。当然，也可以使用引用传递来返回值：    
+```{c, eval=FALSE}
+__device__ void func(double a, double b, double &c){
+    c = a * b;
+}
+```
+
+
+
+`__device__`函数也支持递归，但我想不到什么需要并行且递归的运算。
+
+## 生成动态链接库 {#cuda_shared}
+
+> _生命在于静止。——蔡明_
+
+虽然这是一份讲解如何并行编程的指南，但是我想许多人分析数据不是纯粹使用c/c++的。因此，使用动态链接库就很有意义了，这可以让你的并行程序安排到你常用的软件中，比如root。（显然root的cling解释器是看不懂cuda代码的，cuda也不大可能采用cling后端，因此创建动态链接库是有意义的。）
+
+动态链接库在linux里面称作"shared object"，后缀名是".so".
+
+### 用c++做一个动态链接库
+
+先来看看对于一个普通的c++程序要怎么做。假设现在有一个shared.h头文件声明了一些函数，并且在shared.cpp中实现了这些函数。    
+```{bash, eval=FALSE}
+  $ g++ -shared -fPIC -o libshared.so shared.cpp
+```
+
+上面的代码会生成一个叫做“shared.so”的文件，这就是我们想要的动态链接库。
+
+> 关于`-fPIC`:    
+>    
+>> PIC表示位置无关代码(Position-Independent Code)。这里面的机制比较复杂，就不在这里详细说明了。但是一般来说这么用就对了。    
+似乎除非你的程序编译出来可执行文件大于2GB的话才需要考虑一些其他的特殊技术。
+
+### 生成cuda的动态链接库
+
+
+
+同样，假设在cushared.h里声明了一些函数，在cushared.cu里实现了这些函数（函数里包含对kernel的调用）。
+```{bash, eval=FALSE}
+  $ nvcc --compiler-options '-fPIC' -o libcushared.so --shared mykernel.cu
+```
+
+`--compiler-options`后面接着的是要传递给后端c++编译器的参数。`--shared`表示要编译成动态链接库。
+
+### 使用动态链接库
+
+在c++中使用动态链接库有两种方法。一种是在代码里包含好头文件，并在编译的时候指定好要链接的库文件。例如我们之前的动态库shared.cpp和其头文件shared.h.假设我们有一个call.cpp（和shared.h还有libshared.so在同一目录下），其中需要使用我们的libshared.so库，那么首先要在call.cpp里`#include "shared.h"`.然后用如下方法编译
+
+```{bash, eval=FALSE}
+  $ g++ -o call -L. -lshared
+```
+
+其中，`-L.`表明我们要把当前位置列入库文件搜索目录，`-lshared`表示需要链接叫做“shared”的库。（`-lshared`会搜索libshared.so）。
+
+但是这样运行`./call`会报错，这是因为系统并不知道这个libshared.so在哪里。所以我们应该把这个位置添加到环境变量`LD_LIBRARY_PATH`中。   
+
+```{bash, eval=FALSE}
+  $ export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+```
+
+再执行`./call`就可以了。
+
+另一种调用方法是使用dlopen函数直接打开库文件（比如libshared.so），然后再通过dlsym函数找到需要的函数的地址，然后执行函数。用完以后还要用dlclose关闭库文件。这比较麻烦，就不多介绍了。
+
+### 在root中交互地使用动态链接库
+
+***此方法在root6上运行成功，但是在root5中会失败。具体原因不明。***
+
+在root交互环境中，可以直接引入头文件，然后加载.so文件，就可以调用函数了。
+
+```{bash, eval=FALSE}
+  root [0] #include "shared.h"
+  root [1] .L libshared.so
+  root [2] //do something
+```
+
+### 在root中交互地使用cuda的完整例子
+
+***此方法在root6上运行成功，但是在root5中会失败。具体原因不明。***
+
+#### sharedlib.h
+
+```{c, eval=FALSE}
+#ifndef SHARED_LIB_H
+#define SHARED_LIB_H
+void vecadd(double*, double*, double*, unsigned int)
+#endif
+```
+
+#### sharedlib.cu
+
+```{c, eval=FALSE}
+#include <cuda_runtime.h>
+#include "./sharedlib.h"
+
+__global__ void cuadd(double* a, double* b, double* c, unsigned int N){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+    if(id < N){
+        c[id] = a[id] + b[id];
+    }
+}
+
+void vecadd(double* a, double* b, double* c, unsigned int N){
+    double* cua;
+    double* cub;
+    double* cuc;
+    cudaMalloc(&cua, N*sizeof(double));
+    cudaMalloc(&cub, N*sizeof(double));
+    cudaMalloc(&cuc, N*sizeof(double));
+    cudaMemcpy(cua, a, N*sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(cub, b, N*sizeof(double), cudaMemcpyHostToDevice);
+    cuadd<<<(N+127)/128,128>>>(cua,cub,cuc,N);
+    cudaMemcpy(c, cuc, N*sizeof(double), cudaMemcpyDeviceToHost);
+    cudaFree(cua);
+    cudaFree(cub);
+    cudaFree(cuc);
+}
+```
+
+#### compile
+
+```{bash, eval=FALSE}
+nvcc --compiler-options '-fPIC' -o libcusharedlib.so --shared share.cu
+```
+
+#### use
+
+```{bash, eval=FALSE}
+$ root
+root [0] #include "sharedlib.h"
+root [1] .L libcusharedlib.so
+root [2] double* a = (double*)malloc(1024*sizeof(double))
+root [3] for(int i = 0; i < 1024; i++){ a[i] = (double)i; }
+root [4] double* c = (double*)malloc(1024*sizeof(double))
+root [5] vecadd(a, a, c, 1024)
+root [6] c[42] // 84.0000
+root [7] free(a)
+root [8] free(b)
+root [9] .q
+
+```
+
+
+### 不支持c++的情况
+
+一些编程语言不支持调用c++写成的库，只支持c的（以及在需要c调用c++的库的情况）。这时候要对需要导出的函数做一点点处理。要将需要导出的函数声明放到`extern "C"`里面。比如在头文件里
+
+```{c, eval=FALSE}
+extern "C"{
+  int someIntFunction();
+  double someDoubleFunction();
+  //......
+}
+```
+
+
+## 本章小结 {#cudabase_sum}
+
+感觉怎么样？有点似懂非懂？要不尝试翻回来再看看代码，自己改一改试一试，有没有觉得稍微明白一点了？可以试着改一改thread和block的结构，看看运行效率有怎样的变化。
+
+还有要注意一点，这里程序比较简单，所以完全没有安排错误处理。`cudaMalloc`，`cudaMemcpy`等函数都是有返回值的，会返回一个`cudaError_t`的类型。大家完全可以用`auto`类型来接收返回值。`cudaError_t`是一个枚举类型，其实跟int没太大区别。当返回值是`cudaSuccess`（这个等于0，可以直接把返回值和0作比较判断有没有error）的时候说明成功了，没有错误。其他各种错误可以参考[cudaRuntimeAPI](https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038)
+
+此外，kernel函数也有可能运行不成功，比如因为占用寄存器数量过多且每个block里的线程数比较多，可能会导致kernel没有成功执行。要处理这种错误，可以这样做：
+
+```{c, eval=FALSE}
+some_kernel<<<10,1024>>();
+auto err = cudaGetLastError();
+if(err != cudaSuccess){
+  //handle the error
+}
+```
+
+喜闻乐见的自问自答环节！
+
+--------
+
+**问：为什么thread的数量是32的倍数比较好？**    
+事实上，CUDA搞的是一种SIMT模型（single instruction multiple threads），也就是说，一些线程是共享一条指令的。目前的所有支持CUDA的显卡都是以32个线程为一组（称作一个线程束（warp）），它们共同接受同一个指令并进行计算。如果一个block里的thread数目不是32的倍数，假设是48，那么显卡会把这48个线程分成两组，一组32线程，一组16线程。在执行16线程的一组的时候，只有16个线程在干活，另外16个线程只能站在干岸上看着，形成一方有难八方围观之势。为什么这16个线程不能干点别的呢？因为硬件上就是把32个线程作为一组的来调度的。    
+基于同样的原因，kernel里面要尽量避免不必要的条件判断。因为每次发送指令，接受指令的线程都要干一样的事情，所以在条件语句中，是一个分支的线程执行完，再另一个分支的线程执行。如果两个分支的跳转概率一样，可能就会使得性能减半。
+
+--------
+
+**问：三维grid和三维block意义何在？**    
+事实上，grid和block的维度对于计算机来说并没有太大的意义，但是对于人来说还是有意义的。使用什么样的grid和block结构取决于数据的“样子”。    
+就像一维数组和三维数组一样，原则上，用多维数组处理的问题都可以转化到用一维数组来处理。    
+
+> 比如10*10的数组，访问起来是`array2[i][j]`    
+换成一维数组呢，就可以这样访问：`array[i*10+j]`
+
+--------
+
+**问：二维和三维的block里面thread数量是怎么限制的？**    
+不考虑寄存器数量限制的话：    
+首先，一个block里面不能有超过1024个线程。其次，在每个维度上都有一个最大线程数。只有同时满足以上限制才可以。（第一个维度，也就是x的最大值肯定是1024，这保证了一维的block可以用满线程数限制）。    
+具体的最大值，还有好多其他参数，包括寄存器数量等等都有相应的函数可以查询。具体可以参考cuda的sample里面的`1_Utilities/deviceQuery`里面的程序以及运行结果。
+
+--------
+
+**问：我是使用printf法来debug的那种选手怎么办？**    
+没关系，kernel函数里可以使用printf。但是要注意，在kernel里用printf的时候不要把grid和block设置得太大，否则你会得到铺天盖地的打印信息。（也可以在kernel里面判断，只有在特定block的特定thread打印信息也是可行的）
+
+--------
+
+**问：很好，那么这到底有什么用呢？**    
+答：正常小朋友一般问不出来这种问题。
+
+--------
+
+**再补充一个信息（可能管理员会发现比较有用）。可以使用`nvidia-smi`查看GPU的工作情况。这个运行一下只会显示一次信息。如果相要持续显示信息，可以使用`-l`或者`-lms`选项。具体见`nvidia-smi -h`输出的帮助信息。**
+
+
+

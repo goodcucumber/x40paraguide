@@ -1,0 +1,48 @@
+# 使用Nsight优化程序 {#nsight}
+
+前文提到了使用流增加并行性，但是如何判比较据拷贝和计算分别占用的时长呢？这里隆重介绍一下Nsight。
+
+Nsight可以对一个程序运行期间设备的行为进行采样，并在一个时间轴上画出来。这样就可以方便地分析数据传输延迟是不是产生了比较大的影响，计算和数据拷贝是不是可以更加高效地并行等等。
+
+Nsight可以通过SSH连接到远程机器来监控程序运行情况，因此可以在本地安装Nsight来对服务器上的程序进行调试。
+
+## 下载和安装
+
+Nsight要安装到自己的计算机中，然后连接到服务器进并分析服务器上程序的行为。
+
+在[这里](https://developer.nvidia.com/nsight-systems)下载nsight systems。下载后安装即可。
+
+## 连接到服务器
+
+如图，设置好服务器地址，ssh端口和用户名。点击connect即可连结。
+
+```{r fig5, fig.cap='nsight', out.width='90%', echo=FALSE}
+knitr::include_graphics("figs/nsight.png")
+```
+
+
+## 分析程序
+
+如图，勾选要分析的部分，比如下面的"Collect CUDA trace".
+
+然后在Working directory里面填上工作目录，在Command line with arguments里填上可执行文件和需要的参数。
+
+在右边点击start即可开始分析。但是远程分析无法自动停止，因此需要估计好程序运行时间，然后点stop。
+
+```{r fig6, fig.cap='nsight_prof', out.width='90%', echo=FALSE}
+knitr::include_graphics("figs/nsight2.png")
+```
+
+
+## 查看报告
+
+停止以后，会出现一个“Report 1”标签页，里面有分析报告。上面可以看到时间轴，可以直观地看出各种调用占用的时间。
+
+使用Ctrl+鼠标滚轮可以缩放时间轴。
+
+
+```{r fig7, fig.cap='nsight_rep', out.width='90%', echo=FALSE}
+knitr::include_graphics("figs/nsight3.png")
+```
+
+
