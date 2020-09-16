@@ -369,8 +369,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 再把这个地方加入到$PATH环境变量里<code>export PATH=~/bin/:$PATH</code>.<br />
 然后下载glibc 2.30的源代码，解压。在其目录里面创建一个<code>build</code>文件夹并进入。</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="cmt.html#cb10-1"></a>  $ <span class="ex">../configure</span> --prefix=~/glibc230/</span>
-<span id="cb10-2"><a href="cmt.html#cb10-2"></a>  $ <span class="fu">make</span> -j10 all</span>
-<span id="cb10-3"><a href="cmt.html#cb10-3"></a>  $ <span class="fu">make</span> install</span></code></pre></div>
+<span id="cb10-2"><a href="cmt.html#cb10-2"></a>  $ <span class="fu">gmake</span> -j10 all</span>
+<span id="cb10-3"><a href="cmt.html#cb10-3"></a>  $ <span class="fu">gmake</span> install</span></code></pre></div>
 <p>注意一定要指定<code>--prefix</code>,否则<code>make install</code>会尝试将glibc安装到系统目录。<br />
 这里假设你将glibc安装到<code>~/glibc230</code>.<br />
 安装好以后就可以编译muladd_mt.c了</p>
