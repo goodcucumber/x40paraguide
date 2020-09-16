@@ -316,7 +316,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb41-8"><a href="cache.html#cb41-8"></a>        }</span>
 <span id="cb41-9"><a href="cache.html#cb41-9"></a>    }</span>
 <span id="cb41-10"><a href="cache.html#cb41-10"></a>}</span></code></pre></div>
-<p>根据上一节的命令，我们查到CPU的一级缓存是32kB，也就是说最多可以存储4096个double，所有无论如何，这些数字是不可能全部缓存起来的。（这也是最开始为什么选择了8192作为数组维度）。</p>
+<p>根据上一节的命令，我们查到CPU的一级缓存是32kB，也就是说最多可以存储4096个double，所以无论如何，这些数字是不可能全部缓存起来的。（这也是最开始为什么选择了8192作为数组维度）。</p>
 <p>显然，这个函数也是一样对每组a[i]，b[i]，c[i]进行一次计算。编译并运行，可以发现原来耗时约20s的程序，现在需要30s。</p>
 <p>二级缓存和三级缓存相对空间要大一些，而且是数据和指令共用的，一般就不对它们进行优化了（吧？）。</p>
 
