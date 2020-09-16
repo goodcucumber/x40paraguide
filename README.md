@@ -1,4 +1,6 @@
-# x40paraguide
+# x40paraguide 
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-green?style=flat)](https://github.com/goodcucumber/x40paraguide/blob/master/LICENSE)
 
 这里是一份在x40服务器上进行并行编程的指南。
 
