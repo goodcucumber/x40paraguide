@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>第 5 章 CUDA | x40并行编程指南</title>
+  <meta name="description" content="在x40服务器上并行运算" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="第 5 章 CUDA | x40并行编程指南" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="在x40服务器上并行运算" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="第 5 章 CUDA | x40并行编程指南" />
+  
+  <meta name="twitter:description" content="在x40服务器上并行运算" />
+  
+
+<meta name="author" content="cucumber" />
+
+
+<meta name="date" content="2020-09-16" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="gpuintro.html"/>
+<link rel="next" href="cuda-adv.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css\style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">x40并行编程指南</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>前言</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#致谢"><i class="fa fa-check"></i>致谢</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="author.html"><a href="author.html"><i class="fa fa-check"></i>作者简介</a></li>
+<li class="chapter" data-level="" data-path="x40.html"><a href="x40.html"><i class="fa fa-check"></i>x40服务器</a><ul>
+<li class="chapter" data-level="0.1" data-path="x40.html"><a href="x40.html#基本硬件信息"><i class="fa fa-check"></i><b>0.1</b> 基本硬件信息</a></li>
+</ul></li>
+<li class="part"><span><b>I c语言并行编程</b></span></li>
+<li class="chapter" data-level="1" data-path="csimd.html"><a href="csimd.html"><i class="fa fa-check"></i><b>1</b> SIMD 和 SSE/AVX</a><ul>
+<li class="chapter" data-level="1.1" data-path="csimd.html"><a href="csimd.html#muladd_base"><i class="fa fa-check"></i><b>1.1</b> 一个简单的程序</a></li>
+<li class="chapter" data-level="1.2" data-path="csimd.html"><a href="csimd.html#csimd_first"><i class="fa fa-check"></i><b>1.2</b> 我的第一个SIMD程序！</a></li>
+<li class="chapter" data-level="1.3" data-path="csimd.html"><a href="csimd.html#csimd_reg"><i class="fa fa-check"></i><b>1.3</b> 搞个寄存器变量</a></li>
+<li class="chapter" data-level="1.4" data-path="csimd.html"><a href="csimd.html#csimd_asm"><i class="fa fa-check"></i><b>1.4</b> 我比编译器聪明系列</a></li>
+<li class="chapter" data-level="1.5" data-path="csimd.html"><a href="csimd.html#csimd_gccO3"><i class="fa fa-check"></i><b>1.5</b> 编译器比我聪明系列</a></li>
+<li class="chapter" data-level="1.6" data-path="csimd.html"><a href="csimd.html#csimd_sum"><i class="fa fa-check"></i><b>1.6</b> 本章小结</a></li>
+<li class="chapter" data-level="1.7" data-path="csimd.html"><a href="csimd.html#csimd_add"><i class="fa fa-check"></i><b>1.7</b> 补充内容</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="cmt.html"><a href="cmt.html"><i class="fa fa-check"></i><b>2</b> c语言多线程编程</a><ul>
+<li class="chapter" data-level="2.1" data-path="cmt.html"><a href="cmt.html#cmt_muladd"><i class="fa fa-check"></i><b>2.1</b> 还是乘加运算</a></li>
+<li class="chapter" data-level="2.2" data-path="cmt.html"><a href="cmt.html#cmt_sum"><i class="fa fa-check"></i><b>2.2</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="fma.html"><a href="fma.html"><i class="fa fa-check"></i><b>3</b> 第一部分结束语</a></li>
+<li class="part"><span><b>II GPGPU</b></span></li>
+<li class="chapter" data-level="4" data-path="gpuintro.html"><a href="gpuintro.html"><i class="fa fa-check"></i><b>4</b> GPU简介</a><ul>
+<li class="chapter" data-level="4.1" data-path="gpuintro.html"><a href="gpuintro.html#gpu_about"><i class="fa fa-check"></i><b>4.1</b> 图形处理是怎么回事？</a></li>
+<li class="chapter" data-level="4.2" data-path="gpuintro.html"><a href="gpuintro.html#gpu_gpgpu"><i class="fa fa-check"></i><b>4.2</b> 那GPGPU是啥？</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="cuda.html"><a href="cuda.html"><i class="fa fa-check"></i><b>5</b> CUDA</a><ul>
+<li class="chapter" data-level="5.1" data-path="cuda.html"><a href="cuda.html#before_start"><i class="fa fa-check"></i><b>5.1</b> 开始之前</a></li>
+<li class="chapter" data-level="5.2" data-path="cuda.html"><a href="cuda.html#cuda_first"><i class="fa fa-check"></i><b>5.2</b> 我的第一个cuda程序</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="cuda.html"><a href="cuda.html#include-cuda_runtime.h"><i class="fa fa-check"></i><b>5.2.1</b> #include &lt;cuda_runtime.h&gt;</a></li>
+<li class="chapter" data-level="5.2.2" data-path="cuda.html"><a href="cuda.html#global__-void-muladd"><i class="fa fa-check"></i><b>5.2.2</b> <code>__global__ void muladd</code></a></li>
+<li class="chapter" data-level="5.2.3" data-path="cuda.html"><a href="cuda.html#blockidxblockdim和threadidx"><i class="fa fa-check"></i><b>5.2.3</b> <code>blockIdx</code>,<code>blockDim</code>和<code>threadIdx</code></a></li>
+<li class="chapter" data-level="5.2.4" data-path="cuda.html"><a href="cuda.html#cudamalloc"><i class="fa fa-check"></i><b>5.2.4</b> <code>cudaMalloc</code></a></li>
+<li class="chapter" data-level="5.2.5" data-path="cuda.html"><a href="cuda.html#cudamemcpy"><i class="fa fa-check"></i><b>5.2.5</b> <code>cudaMemcpy</code></a></li>
+<li class="chapter" data-level="5.2.6" data-path="cuda.html"><a href="cuda.html#section"><i class="fa fa-check"></i><b>5.2.6</b> <code>&lt;&lt;&lt;32, 256&gt;&gt;&gt;</code></a></li>
+<li class="chapter" data-level="5.2.7" data-path="cuda.html"><a href="cuda.html#cudafree"><i class="fa fa-check"></i><b>5.2.7</b> <code>cudaFree</code></a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="cuda.html"><a href="cuda.html#cuda新增类型"><i class="fa fa-check"></i><b>5.3</b> CUDA新增类型</a></li>
+<li class="chapter" data-level="5.4" data-path="cuda.html"><a href="cuda.html#cuda_device"><i class="fa fa-check"></i><b>5.4</b> 使用<code>__device__</code>函数</a></li>
+<li class="chapter" data-level="5.5" data-path="cuda.html"><a href="cuda.html#cuda_shared"><i class="fa fa-check"></i><b>5.5</b> 生成动态链接库</a><ul>
+<li class="chapter" data-level="5.5.1" data-path="cuda.html"><a href="cuda.html#用c做一个动态链接库"><i class="fa fa-check"></i><b>5.5.1</b> 用c++做一个动态链接库</a></li>
+<li class="chapter" data-level="5.5.2" data-path="cuda.html"><a href="cuda.html#生成cuda的动态链接库"><i class="fa fa-check"></i><b>5.5.2</b> 生成cuda的动态链接库</a></li>
+<li class="chapter" data-level="5.5.3" data-path="cuda.html"><a href="cuda.html#使用动态链接库"><i class="fa fa-check"></i><b>5.5.3</b> 使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.4" data-path="cuda.html"><a href="cuda.html#在root中交互地使用动态链接库"><i class="fa fa-check"></i><b>5.5.4</b> 在root中交互地使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.5" data-path="cuda.html"><a href="cuda.html#在root中交互地使用cuda的完整例子"><i class="fa fa-check"></i><b>5.5.5</b> 在root中交互地使用cuda的完整例子</a></li>
+<li class="chapter" data-level="5.5.6" data-path="cuda.html"><a href="cuda.html#不支持c的情况"><i class="fa fa-check"></i><b>5.5.6</b> 不支持c++的情况</a></li>
+</ul></li>
+<li class="chapter" data-level="5.6" data-path="cuda.html"><a href="cuda.html#cudabase_sum"><i class="fa fa-check"></i><b>5.6</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="cuda-adv.html"><a href="cuda-adv.html"><i class="fa fa-check"></i><b>6</b> CUDA高级优化技巧</a><ul>
+<li class="chapter" data-level="6.1" data-path="cuda-adv.html"><a href="cuda-adv.html#纹理和纹理内存"><i class="fa fa-check"></i><b>6.1</b> 纹理和纹理内存</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="cuda-adv.html"><a href="cuda-adv.html#什么是纹理"><i class="fa fa-check"></i><b>6.1.1</b> 什么是纹理？</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cuda-adv.html"><a href="cuda-adv.html#cuda纹理的寻址模式和线性插值"><i class="fa fa-check"></i><b>6.1.2</b> CUDA纹理的寻址模式和线性插值</a></li>
+<li class="chapter" data-level="6.1.3" data-path="cuda-adv.html"><a href="cuda-adv.html#举一个例子"><i class="fa fa-check"></i><b>6.1.3</b> 举一个例子</a></li>
+<li class="chapter" data-level="6.1.4" data-path="cuda-adv.html"><a href="cuda-adv.html#如何实现双精度纹理"><i class="fa fa-check"></i><b>6.1.4</b> 如何实现双精度纹理</a></li>
+<li class="chapter" data-level="6.1.5" data-path="cuda-adv.html"><a href="cuda-adv.html#所以为什么要用纹理"><i class="fa fa-check"></i><b>6.1.5</b> 所以为什么要用纹理？</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cuda-adv.html"><a href="cuda-adv.html#流"><i class="fa fa-check"></i><b>6.2</b> 流</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="cuda-adv.html"><a href="cuda-adv.html#举个例子"><i class="fa fa-check"></i><b>6.2.1</b> 举个例子</a></li>
+<li class="chapter" data-level="6.2.2" data-path="cuda-adv.html"><a href="cuda-adv.html#回调"><i class="fa fa-check"></i><b>6.2.2</b> 回调</a></li>
+<li class="chapter" data-level="6.2.3" data-path="cuda-adv.html"><a href="cuda-adv.html#什么时候要使用流"><i class="fa fa-check"></i><b>6.2.3</b> 什么时候要使用流</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="cuda-adv.html"><a href="cuda-adv.html#缓存和共享内存的分配"><i class="fa fa-check"></i><b>6.3</b> 缓存和共享内存的分配</a></li>
+<li class="chapter" data-level="6.4" data-path="cuda-adv.html"><a href="cuda-adv.html#cuadv_sum"><i class="fa fa-check"></i><b>6.4</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="nsight.html"><a href="nsight.html"><i class="fa fa-check"></i><b>7</b> 使用Nsight优化程序</a><ul>
+<li class="chapter" data-level="7.1" data-path="nsight.html"><a href="nsight.html#下载和安装"><i class="fa fa-check"></i><b>7.1</b> 下载和安装</a></li>
+<li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
+<li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
+<li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+</ul></li>
+<li class="appendix"><span><b>附录</b></span></li>
+<li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
+<li class="chapter" data-level="A.1" data-path="assemble.html"><a href="assemble.html#基本操作"><i class="fa fa-check"></i><b>A.1</b> 基本操作</a></li>
+<li class="chapter" data-level="A.2" data-path="assemble.html"><a href="assemble.html#神奇的装载有效地址"><i class="fa fa-check"></i><b>A.2</b> 神奇的“装载有效地址”</a></li>
+<li class="chapter" data-level="A.3" data-path="assemble.html"><a href="assemble.html#c语言中的内联汇编"><i class="fa fa-check"></i><b>A.3</b> c语言中的内联汇编</a></li>
+</ul></li>
+<li class="chapter" data-level="B" data-path="float.html"><a href="float.html"><i class="fa fa-check"></i><b>B</b> 浮点数的计算机表示</a><ul>
+<li class="chapter" data-level="B.1" data-path="float.html"><a href="float.html#单精度浮点数"><i class="fa fa-check"></i><b>B.1</b> 单精度浮点数</a><ul>
+<li class="chapter" data-level="B.1.1" data-path="float.html"><a href="float.html#规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.1</b> 规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.2" data-path="float.html"><a href="float.html#非规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.2</b> 非规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.3" data-path="float.html"><a href="float.html#特殊值"><i class="fa fa-check"></i><b>B.1.3</b> 特殊值</a></li>
+</ul></li>
+<li class="chapter" data-level="B.2" data-path="float.html"><a href="float.html#双精度浮点数和半精度浮点数"><i class="fa fa-check"></i><b>B.2</b> 双精度浮点数和半精度浮点数</a></li>
+</ul></li>
+<li class="chapter" data-level="C" data-path="cache.html"><a href="cache.html"><i class="fa fa-check"></i><b>C</b> 高速缓存</a><ul>
+<li class="chapter" data-level="C.1" data-path="cache.html"><a href="cache.html#局部性原理"><i class="fa fa-check"></i><b>C.1</b> 局部性原理</a></li>
+<li class="chapter" data-level="C.2" data-path="cache.html"><a href="cache.html#缓存的组态"><i class="fa fa-check"></i><b>C.2</b> 缓存的组态</a></li>
+<li class="chapter" data-level="C.3" data-path="cache.html"><a href="cache.html#缓存优化"><i class="fa fa-check"></i><b>C.3</b> 缓存优化</a></li>
+<li class="chapter" data-level="C.4" data-path="cache.html"><a href="cache.html#如何查看cpu的缓存组态"><i class="fa fa-check"></i><b>C.4</b> 如何查看cpu的缓存组态</a></li>
+<li class="chapter" data-level="C.5" data-path="cache.html"><a href="cache.html#感受一下缓存不命中"><i class="fa fa-check"></i><b>C.5</b> 感受一下缓存不命中</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>参考文献</a></li>
+<li class="divider"></li>
+<li><a href="https://bookdown.org" target="blank">本书由 bookdown 强力驱动</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">x40并行编程指南</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="cuda" class="section level1">
+<h1><span class="header-section-number">第 5 章</span> CUDA</h1>
+<p>CUDA (Compute Unified Device Architecture) 是Nvidia推出的用于自家显卡的并行计算技术。这里将介绍如何使用CUDA来进行并行运算。</p>
+<div id="before_start" class="section level2">
+<h2><span class="header-section-number">5.1</span> 开始之前</h2>
+<blockquote>
+<p><em>工欲善其事，必先利其器。——《论语》</em></p>
+</blockquote>
+<p>CUDA需要gcc版本高于5，推荐的版本是9.x。服务器上已经安装了gcc9.3.0，可以直接load</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="cuda.html#cb12-1"></a><span class="ex">module</span> load gcc/9.3.0</span></code></pre></div>
+<p>之后，要装载cuda的module</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="cuda.html#cb13-1"></a><span class="ex">module</span> load cuda/11.0.3</span></code></pre></div>
+<p>这样，nvcc编译器和各种库就添加到环境变量里面了。</p>
+</div>
+<div id="cuda_first" class="section level2">
+<h2><span class="header-section-number">5.2</span> 我的第一个cuda程序</h2>
+<blockquote>
+<p><em>信じる心があなたの魔法！——『リトルウィッチアカデミア』</em></p>
+</blockquote>
+<p>还是之前的先乘后加。我们把计算过程放到GPU上去做。</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="cuda.html#cb14-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb14-2"><a href="cuda.html#cb14-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb14-3"><a href="cuda.html#cb14-3"></a><span class="pp">#include </span><span class="im">&lt;time.h&gt;</span></span>
+<span id="cb14-4"><a href="cuda.html#cb14-4"></a><span class="pp">#include </span><span class="im">&lt;cuda_runtime.h&gt;</span></span>
+<span id="cb14-5"><a href="cuda.html#cb14-5"></a></span>
+<span id="cb14-6"><a href="cuda.html#cb14-6"></a>__global__ <span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">double</span>* d,</span>
+<span id="cb14-7"><a href="cuda.html#cb14-7"></a>                       <span class="dt">unsigned</span> <span class="dt">int</span> N){</span>
+<span id="cb14-8"><a href="cuda.html#cb14-8"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> id = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span id="cb14-9"><a href="cuda.html#cb14-9"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> j;</span>
+<span id="cb14-10"><a href="cuda.html#cb14-10"></a>    <span class="cf">if</span>(id &lt; N){</span>
+<span id="cb14-11"><a href="cuda.html#cb14-11"></a>        <span class="cf">for</span>(j = <span class="dv">0</span>; j &lt; <span class="dv">1000000</span>; j++){</span>
+<span id="cb14-12"><a href="cuda.html#cb14-12"></a>            d[id] = a[id] * b[id] + c[id];</span>
+<span id="cb14-13"><a href="cuda.html#cb14-13"></a>        }</span>
+<span id="cb14-14"><a href="cuda.html#cb14-14"></a>    }</span>
+<span id="cb14-15"><a href="cuda.html#cb14-15"></a>}</span>
+<span id="cb14-16"><a href="cuda.html#cb14-16"></a></span>
+<span id="cb14-17"><a href="cuda.html#cb14-17"></a><span class="dt">int</span> main(){</span>
+<span id="cb14-18"><a href="cuda.html#cb14-18"></a>    <span class="dt">double</span>* a; </span>
+<span id="cb14-19"><a href="cuda.html#cb14-19"></a>    <span class="dt">double</span>* b; </span>
+<span id="cb14-20"><a href="cuda.html#cb14-20"></a>    <span class="dt">double</span>* c; </span>
+<span id="cb14-21"><a href="cuda.html#cb14-21"></a>    <span class="dt">double</span>* d;</span>
+<span id="cb14-22"><a href="cuda.html#cb14-22"></a></span>
+<span id="cb14-23"><a href="cuda.html#cb14-23"></a>    <span class="dt">double</span>* cua;</span>
+<span id="cb14-24"><a href="cuda.html#cb14-24"></a>    <span class="dt">double</span>* cub;</span>
+<span id="cb14-25"><a href="cuda.html#cb14-25"></a>    <span class="dt">double</span>* cuc;</span>
+<span id="cb14-26"><a href="cuda.html#cb14-26"></a>    <span class="dt">double</span>* cud;</span>
+<span id="cb14-27"><a href="cuda.html#cb14-27"></a></span>
+<span id="cb14-28"><a href="cuda.html#cb14-28"></a>    a = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb14-29"><a href="cuda.html#cb14-29"></a>    b = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb14-30"><a href="cuda.html#cb14-30"></a>    c = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb14-31"><a href="cuda.html#cb14-31"></a>    d = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb14-32"><a href="cuda.html#cb14-32"></a></span>
+<span id="cb14-33"><a href="cuda.html#cb14-33"></a>    cudaMalloc(&amp;cua, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb14-34"><a href="cuda.html#cb14-34"></a>    cudaMalloc(&amp;cub, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb14-35"><a href="cuda.html#cb14-35"></a>    cudaMalloc(&amp;cuc, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb14-36"><a href="cuda.html#cb14-36"></a>    cudaMalloc(&amp;cud, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb14-37"><a href="cuda.html#cb14-37"></a></span>
+<span id="cb14-38"><a href="cuda.html#cb14-38"></a>    <span class="co">//Prepare data</span></span>
+<span id="cb14-39"><a href="cuda.html#cb14-39"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb14-40"><a href="cuda.html#cb14-40"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb14-41"><a href="cuda.html#cb14-41"></a>        a[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb14-42"><a href="cuda.html#cb14-42"></a>        b[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb14-43"><a href="cuda.html#cb14-43"></a>        c[i] = ((<span class="dt">double</span>)i)/<span class="fl">10000.0</span>;</span>
+<span id="cb14-44"><a href="cuda.html#cb14-44"></a>    }</span>
+<span id="cb14-45"><a href="cuda.html#cb14-45"></a>    </span>
+<span id="cb14-46"><a href="cuda.html#cb14-46"></a>    clock_t start, stop;</span>
+<span id="cb14-47"><a href="cuda.html#cb14-47"></a>    <span class="dt">double</span> elapsed;</span>
+<span id="cb14-48"><a href="cuda.html#cb14-48"></a>    start = clock();</span>
+<span id="cb14-49"><a href="cuda.html#cb14-49"></a>    cudaMemcpy(cua, a, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>), cudaMemcpyHostToDevice);</span>
+<span id="cb14-50"><a href="cuda.html#cb14-50"></a>    cudaMemcpy(cub, b, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>), cudaMemcpyHostToDevice);</span>
+<span id="cb14-51"><a href="cuda.html#cb14-51"></a>    cudaMemcpy(cuc, c, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>), cudaMemcpyHostToDevice);</span>
+<span id="cb14-52"><a href="cuda.html#cb14-52"></a>    </span>
+<span id="cb14-53"><a href="cuda.html#cb14-53"></a>    muladd&lt;&lt;&lt;<span class="dv">32</span>, <span class="dv">256</span>&gt;&gt;&gt;(cua, cub, cuc, cud, <span class="dv">8192</span>);</span>
+<span id="cb14-54"><a href="cuda.html#cb14-54"></a>    </span>
+<span id="cb14-55"><a href="cuda.html#cb14-55"></a>    cudaMemcpy(d, cud, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>), cudaMemcpyDeviceToHost);</span>
+<span id="cb14-56"><a href="cuda.html#cb14-56"></a>    stop = clock();</span>
+<span id="cb14-57"><a href="cuda.html#cb14-57"></a>    elapsed = (<span class="dt">double</span>)(stop-start) / CLOCKS_PER_SEC;</span>
+<span id="cb14-58"><a href="cuda.html#cb14-58"></a>    printf(<span class="st">&quot;Elapsed time = %8.6f s</span><span class="sc">\n</span><span class="st">&quot;</span>, elapsed);</span>
+<span id="cb14-59"><a href="cuda.html#cb14-59"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb14-60"><a href="cuda.html#cb14-60"></a>        <span class="cf">if</span>(i % <span class="dv">1001</span> == <span class="dv">0</span>){</span>
+<span id="cb14-61"><a href="cuda.html#cb14-61"></a>            printf(<span class="st">&quot;%5llu: %16.8f * %16.8f + %16.8f = %16.8f (%d)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb14-62"><a href="cuda.html#cb14-62"></a>                   i, a[i], b[i], c[i], d[i], d[i]==a[i]*b[i]+c[i]);</span>
+<span id="cb14-63"><a href="cuda.html#cb14-63"></a>        }</span>
+<span id="cb14-64"><a href="cuda.html#cb14-64"></a>    }</span>
+<span id="cb14-65"><a href="cuda.html#cb14-65"></a></span>
+<span id="cb14-66"><a href="cuda.html#cb14-66"></a>    free(a);</span>
+<span id="cb14-67"><a href="cuda.html#cb14-67"></a>    free(b);</span>
+<span id="cb14-68"><a href="cuda.html#cb14-68"></a>    free(c);</span>
+<span id="cb14-69"><a href="cuda.html#cb14-69"></a>    free(d);</span>
+<span id="cb14-70"><a href="cuda.html#cb14-70"></a>    cudaFree(cua);</span>
+<span id="cb14-71"><a href="cuda.html#cb14-71"></a>    cudaFree(cub);</span>
+<span id="cb14-72"><a href="cuda.html#cb14-72"></a>    cudaFree(cuc);</span>
+<span id="cb14-73"><a href="cuda.html#cb14-73"></a>    cudaFree(cud);</span>
+<span id="cb14-74"><a href="cuda.html#cb14-74"></a>}</span></code></pre></div>
+<p>编译cuda程序要使用<code>nvcc</code>编译器。</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="cuda.html#cb15-1"></a>  $ <span class="ex">nvcc</span> -fmad=false  -o cumuladd muladd.cu</span></code></pre></div>
+<p>注意这里的<code>-fmad=false</code>。nvcc默认是会把相邻的乘法和加法优化成FMA的（关于FMA，参见上一部分最后一章(<a href="fma.html#fma">3</a>)）。这里关闭FMA来跟CPU同台竞技，也为了后面比较结果时不会出差错。</p>
+<p>运行一下，哇！比1s还短！</p>
+<p>（其实nvcc只负责GPU部分，剩下的会交给普通的c++编译器。不好意思，CUDA runtime API是c++的，但是众所周知，c++（基本上）和c是兼容的。所以本质上上面是一个看起来像c的c++程序😋）</p>
+<p>我们来解释一下这里都干了些啥</p>
+<div id="include-cuda_runtime.h" class="section level3">
+<h3><span class="header-section-number">5.2.1</span> #include &lt;cuda_runtime.h&gt;</h3>
+<p>大多数我们需要的功能都在 cuda_runtime.h 头文件里提供。要include进来哦！</p>
+</div>
+<div id="global__-void-muladd" class="section level3">
+<h3><span class="header-section-number">5.2.2</span> <code>__global__ void muladd</code></h3>
+<p>注意<code>__global__</code>，这是CUDA对c++的扩展。常见的标签：</p>
+<ul>
+<li><code>__global__</code>,</li>
+<li><code>__device__</code>,和</li>
+<li><code>__host__</code></li>
+<li>还有别的不常用的，可以参考cuda runtime文档</li>
+</ul>
+<p><code>__global__</code>的函数可以被CPU或GPU调用，在GPU上执行。（在GPU上调用<code>__global__</code>函数似乎是在并行地运行并行程序（就是套娃🤣）。一般还是从CPU调用比较常见。）这种函数被成为“kernel”。</p>
+<p><code>__device__</code>的函数只可以被GPU调用，在GPU上执行。这种函数一般会被编译器展开到调用处。</p>
+<p><code>__host__</code>的函数只可以被CPU调用，在CPU上执行。和不加标签一样。</p>
+<p><code>__global__</code>函数必须是返回值为<code>void</code>的函数，<code>__device__</code>和<code>__host__</code>则无要求。</p>
+</div>
+<div id="blockidxblockdim和threadidx" class="section level3">
+<h3><span class="header-section-number">5.2.3</span> <code>blockIdx</code>,<code>blockDim</code>和<code>threadIdx</code></h3>
+<p>一个“kernel”事实上要同时被许多核心执行，那么每个核心就需要知道自己处理的是哪个数据，要是大家抢同一个数据的话就没有意义了。CUDA设计了两级的网格——grid和block。每个grid可以包含若干个block，每个block又包含若干个thread。一个thread将会在一个核心上执行。但是要注意，每个block包含的thread数目不能超过一个最大值（应该是1024）。此外，根据程序使用的寄存器数目，一个block可以包含的thread数目可能会再小一点。（GPU的寄存器还是很多的，一般来说不用担心）此外，每个block里的thread数目最好设为32的倍数，其中原理可以参考后续章节。</p>
+<p>这里的blockIdx，blockDim和threadIdx就相当于线程的编号，用于知道自己应该取处理哪些数据。blockIdx就是block在grid中的编号，blockDim是block中thread的数目，threadIdx是thread在block中的编号。</p>
+<p>注意到后面的<code>.x</code>, CUDA允许使用最大三维的block和三维的grid。上面的程序只使用了一个维度，就只需要<code>.x</code>即可。</p>
+<p>下图展示了grid，block和thread的关系。</p>
+<div class="figure"><span id="fig:fig1"></span>
+<img src="figs/cudaf1.svg" alt="grid, block和thread" width="90%" />
+<p class="caption">
+图 5.1: grid, block和thread
+</p>
+</div>
+<p>事实上也有gridDim，用来表示grid在各个维度上包含多少block。</p>
+</div>
+<div id="cudamalloc" class="section level3">
+<h3><span class="header-section-number">5.2.4</span> <code>cudaMalloc</code></h3>
+<p>类似于<code>malloc</code>，但是是在显存中申请空间。第一个参数要传入一个指针的指针，函数执行完后第一个参数所指向的指针就是显存空间的指针了。第二个参数就是以byte计的空间大小。</p>
+</div>
+<div id="cudamemcpy" class="section level3">
+<h3><span class="header-section-number">5.2.5</span> <code>cudaMemcpy</code></h3>
+<p>用于系统内存和显存之间进行数据拷贝。第一个参数是目标指针，第二个参数是源头指针，第三个参数是要拷贝的内容的大小（byte单位），第四个参数设置拷贝方向。</p>
+<p>为什么要有第四个参数呢？其实指针类型相当于是整数，并没有标识这是系统内存的指针还是显存的指针，所以需要第四个参数说明拷贝方向。</p>
+<p>第四个参数有一下几种可选值：</p>
+<ul>
+<li><code>cudaMemcpyHostToHost</code><br />
+</li>
+<li><code>cudaMemcpyHostToDevice</code><br />
+</li>
+<li><code>cudaMemcpyDeviceToHost</code><br />
+</li>
+<li><code>cudaMemcpyDeviceToDevice</code></li>
+</ul>
+<p>具体作用从名字上看就很明显了。</p>
+</div>
+<div id="section" class="section level3">
+<h3><span class="header-section-number">5.2.6</span> <code>&lt;&lt;&lt;32, 256&gt;&gt;&gt;</code></h3>
+<p>三重尖括号也是CUDA对C++的扩展，用来表示以何种方式组织grid和block。原则上<code>&lt;&lt;&lt;&gt;&gt;&gt;</code>里面应该接受两个dim3类型的量。</p>
+<blockquote>
+<p>dim3是基于uint3的类型，uint3是CUDA定义的一种矢量类型，顾名思义，就是三个unsigned int放在一起。（事实上，就是一块12字节的连续空间而已）。定义dim3变量时，未指定的维度上的数会被设置为1.<br />
+所以上面的<code>&lt;&lt;&lt;&gt;&gt;&gt;</code>里面直接写两个数字其实代表了x维度，剩下两个维度自动设置成1了。</p>
+</blockquote>
+<p>里面第一个参数是对grid的描述，第二个是对block的描述。比如要使用如图6.1的结构运行一个叫做myKernel的<code>__global__</code>函数：（假设该函数不需要参数）</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="cuda.html#cb16-1"></a>dim3 blocks(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>); <span class="co">// grid包含4*4*2个block</span></span>
+<span id="cb16-2"><a href="cuda.html#cb16-2"></a>dim3 threadsPerBlock(<span class="dv">8</span>, <span class="dv">4</span>, <span class="dv">3</span>); <span class="co">// 每个block包含8*4*3个thread</span></span>
+<span id="cb16-3"><a href="cuda.html#cb16-3"></a>myKernel&lt;&lt;&lt;blocks, threadsPerBlock&gt;&gt;&gt;();</span></code></pre></div>
+</div>
+<div id="cudafree" class="section level3">
+<h3><span class="header-section-number">5.2.7</span> <code>cudaFree</code></h3>
+<p><code>cudaFree</code>是用来释放显存的，和c的<code>free</code>类似。<br />
+及时释放使用完的内存是好习惯哦😀</p>
+</div>
+</div>
+<div id="cuda新增类型" class="section level2">
+<h2><span class="header-section-number">5.3</span> CUDA新增类型</h2>
+<blockquote>
+<p><em>Be not afeard. The isle is full of noises, sounds and sweet airs, that give delight and hurt not.——The Tempest</em></p>
+</blockquote>
+<p>除了上面提到的<code>dim3</code>之外，CUDA还提供了其他一些矢量类型，如double2，double3，double4，float2，float3，float4还有char/short/int/long/long long及其无符号系列。具体可以参考<a href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#vector-types">cuda vector types</a>。但是，这些矢量类型并不支持SIMD，甚至没有实现矢量加减法，可以把它们看成只是为了方便表示矢量而定义的类型，实际使用的时候还需自己拿每个分量去做计算。</p>
+<p>另外，CUDA还支持一种半精度浮点数，每个16bit（也有相应的矢量类型）。（关于计算机里的浮点数表示可以参考附录）<br />
+这种半精度类型可能在机器学习领域比较有用。根据CUDA的文档，使用半精度的话建议用<code>half2</code>这种矢量类型（一个<code>half2</code>是一个两维的<code>half</code>矢量），因为<code>half2</code>可以用一些特别的函数（如<code>__hadd2</code>（矢量加法）之类的，还有乘法、除法等等）在一个指令中做两个加法。这可能是CUDA唯一的SIMD操作吧。</p>
+</div>
+<div id="cuda_device" class="section level2">
+<h2><span class="header-section-number">5.4</span> 使用<code>__device__</code>函数</h2>
+<blockquote>
+<p><em>不在其位，不谋其政——《论语》</em></p>
+</blockquote>
+<p>一般我们写一个程序都包含许多函数，它们调用来调用去，组合成我们想要的样子。使用函数的好处在于重复的代码可以只写一次。而且当这部分功能需要改变的时候只要修改函数内容就可以了。</p>
+<p>在CUDA里我们也可以这么做。下面我们分别实现一个乘法函数和一个加法函数，让kernel调用它们完成计算。</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="cuda.html#cb17-1"></a>__device__ <span class="dt">double</span> myAdd(<span class="dt">double</span> a, <span class="dt">double</span> b){</span>
+<span id="cb17-2"><a href="cuda.html#cb17-2"></a>  <span class="cf">return</span> a+b;</span>
+<span id="cb17-3"><a href="cuda.html#cb17-3"></a>}</span>
+<span id="cb17-4"><a href="cuda.html#cb17-4"></a></span>
+<span id="cb17-5"><a href="cuda.html#cb17-5"></a>__device__ <span class="dt">void</span> myMul(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c){</span>
+<span id="cb17-6"><a href="cuda.html#cb17-6"></a>  *c = *a + *b;</span>
+<span id="cb17-7"><a href="cuda.html#cb17-7"></a>}</span>
+<span id="cb17-8"><a href="cuda.html#cb17-8"></a></span>
+<span id="cb17-9"><a href="cuda.html#cb17-9"></a>__global__ <span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">double</span>* d,</span>
+<span id="cb17-10"><a href="cuda.html#cb17-10"></a>                       <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
+<span id="cb17-11"><a href="cuda.html#cb17-11"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> id = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span id="cb17-12"><a href="cuda.html#cb17-12"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> j;</span>
+<span id="cb17-13"><a href="cuda.html#cb17-13"></a>    <span class="cf">if</span>(id &lt; N){</span>
+<span id="cb17-14"><a href="cuda.html#cb17-14"></a>        <span class="cf">for</span>(j = <span class="dv">0</span>; j &lt; <span class="dv">1000000</span>; j++){</span>
+<span id="cb17-15"><a href="cuda.html#cb17-15"></a>            myMul(a+i, b+i, d+i);</span>
+<span id="cb17-16"><a href="cuda.html#cb17-16"></a>            d[i] = myAdd(c[i], d[i]);</span>
+<span id="cb17-17"><a href="cuda.html#cb17-17"></a>        }</span>
+<span id="cb17-18"><a href="cuda.html#cb17-18"></a>    }</span>
+<span id="cb17-19"><a href="cuda.html#cb17-19"></a>}</span></code></pre></div>
+<p>这里的<code>myAdd</code>和<code>myMul</code>采用了不同的写法。<code>myAdd</code>接受两个double参数，返回一个double（如前文所述，<code>__device__</code>函数并不要求void返回值）。而<code>myMul</code>则是另一种风格，直接接受三个指向double的指针，把第三个指针指向的double设为前两个指针指向的double的和。</p>
+<p><code>myAdd</code>和一般的函数设计思路是一致的。但是当你想要从一组参数获得多种返回值的时候，<code>myMul</code>的设计思路可能会变得非常有用。当然，也可以使用引用传递来返回值：</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="cuda.html#cb18-1"></a>__device__ <span class="dt">void</span> func(<span class="dt">double</span> a, <span class="dt">double</span> b, <span class="dt">double</span> &amp;c){</span>
+<span id="cb18-2"><a href="cuda.html#cb18-2"></a>    c = a * b;</span>
+<span id="cb18-3"><a href="cuda.html#cb18-3"></a>}</span></code></pre></div>
+<p><code>__device__</code>函数也支持递归，但我想不到什么需要并行且递归的运算。</p>
+</div>
+<div id="cuda_shared" class="section level2">
+<h2><span class="header-section-number">5.5</span> 生成动态链接库</h2>
+<blockquote>
+<p><em>生命在于静止。——蔡明</em></p>
+</blockquote>
+<p>虽然这是一份讲解如何并行编程的指南，但是我想许多人分析数据不是纯粹使用c/c++的。因此，使用动态链接库就很有意义了，这可以让你的并行程序安排到你常用的软件中，比如root。（显然root的cling解释器是看不懂cuda代码的，cuda也不大可能采用cling后端，因此创建动态链接库是有意义的。）</p>
+<p>动态链接库在linux里面称作“shared object”，后缀名是“.so”.</p>
+<div id="用c做一个动态链接库" class="section level3">
+<h3><span class="header-section-number">5.5.1</span> 用c++做一个动态链接库</h3>
+<p>先来看看对于一个普通的c++程序要怎么做。假设现在有一个shared.h头文件声明了一些函数，并且在shared.cpp中实现了这些函数。</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="cuda.html#cb19-1"></a>  $ <span class="ex">g++</span> -shared -fPIC -o libshared.so shared.cpp</span></code></pre></div>
+<p>上面的代码会生成一个叫做“shared.so”的文件，这就是我们想要的动态链接库。</p>
+<blockquote>
+<p>关于<code>-fPIC</code>:</p>
+<blockquote>
+<p>PIC表示位置无关代码(Position-Independent Code)。这里面的机制比较复杂，就不在这里详细说明了。但是一般来说这么用就对了。<br />
+似乎除非你的程序编译出来可执行文件大于2GB的话才需要考虑一些其他的特殊技术。</p>
+</blockquote>
+</blockquote>
+</div>
+<div id="生成cuda的动态链接库" class="section level3">
+<h3><span class="header-section-number">5.5.2</span> 生成cuda的动态链接库</h3>
+<p>同样，假设在cushared.h里声明了一些函数，在cushared.cu里实现了这些函数（函数里包含对kernel的调用）。</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="cuda.html#cb20-1"></a>  $ <span class="ex">nvcc</span> --compiler-options <span class="st">&#39;-fPIC&#39;</span> -o libcushared.so --shared mykernel.cu</span></code></pre></div>
+<p><code>--compiler-options</code>后面接着的是要传递给后端c++编译器的参数。<code>--shared</code>表示要编译成动态链接库。</p>
+</div>
+<div id="使用动态链接库" class="section level3">
+<h3><span class="header-section-number">5.5.3</span> 使用动态链接库</h3>
+<p>在c++中使用动态链接库有两种方法。一种是在代码里包含好头文件，并在编译的时候指定好要链接的库文件。例如我们之前的动态库shared.cpp和其头文件shared.h.假设我们有一个call.cpp（和shared.h还有libshared.so在同一目录下），其中需要使用我们的libshared.so库，那么首先要在call.cpp里<code>#include "shared.h"</code>.然后用如下方法编译</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="cuda.html#cb21-1"></a>  $ <span class="ex">g++</span> -o call -L. -lshared</span></code></pre></div>
+<p>其中，<code>-L.</code>表明我们要把当前位置列入库文件搜索目录，<code>-lshared</code>表示需要链接叫做“shared”的库。（<code>-lshared</code>会搜索libshared.so）。</p>
+<p>但是这样运行<code>./call</code>会报错，这是因为系统并不知道这个libshared.so在哪里。所以我们应该把这个位置添加到环境变量<code>LD_LIBRARY_PATH</code>中。</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="cuda.html#cb22-1"></a>  $ <span class="bu">export</span> <span class="va">LD_LIBRARY_PATH=</span>.:<span class="va">$LD_LIBRARY_PATH</span></span></code></pre></div>
+<p>再执行<code>./call</code>就可以了。</p>
+<p>另一种调用方法是使用dlopen函数直接打开库文件（比如libshared.so），然后再通过dlsym函数找到需要的函数的地址，然后执行函数。用完以后还要用dlclose关闭库文件。这比较麻烦，就不多介绍了。</p>
+</div>
+<div id="在root中交互地使用动态链接库" class="section level3">
+<h3><span class="header-section-number">5.5.4</span> 在root中交互地使用动态链接库</h3>
+<p><strong><em>此方法在root6上运行成功，但是在root5中会失败。具体原因不明。</em></strong></p>
+<p>在root交互环境中，可以直接引入头文件，然后加载.so文件，就可以调用函数了。</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="cuda.html#cb23-1"></a>  <span class="ex">root</span> [0] <span class="co">#include &quot;shared.h&quot;</span></span>
+<span id="cb23-2"><a href="cuda.html#cb23-2"></a>  <span class="ex">root</span> [1] .L libshared.so</span>
+<span id="cb23-3"><a href="cuda.html#cb23-3"></a>  <span class="ex">root</span> [2] //do something</span></code></pre></div>
+</div>
+<div id="在root中交互地使用cuda的完整例子" class="section level3">
+<h3><span class="header-section-number">5.5.5</span> 在root中交互地使用cuda的完整例子</h3>
+<p><strong><em>此方法在root6上运行成功，但是在root5中会失败。具体原因不明。</em></strong></p>
+<div id="sharedlib.h" class="section level4">
+<h4><span class="header-section-number">5.5.5.1</span> sharedlib.h</h4>
+<div class="sourceCode" id="cb24"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb24-1"><a href="cuda.html#cb24-1"></a><span class="pp">#ifndef SHARED_LIB_H</span></span>
+<span id="cb24-2"><a href="cuda.html#cb24-2"></a><span class="pp">#define SHARED_LIB_H</span></span>
+<span id="cb24-3"><a href="cuda.html#cb24-3"></a><span class="dt">void</span> vecadd(<span class="dt">double</span>*, <span class="dt">double</span>*, <span class="dt">double</span>*, <span class="dt">unsigned</span> <span class="dt">int</span>)</span>
+<span id="cb24-4"><a href="cuda.html#cb24-4"></a><span class="pp">#endif</span></span></code></pre></div>
+</div>
+<div id="sharedlib.cu" class="section level4">
+<h4><span class="header-section-number">5.5.5.2</span> sharedlib.cu</h4>
+<div class="sourceCode" id="cb25"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb25-1"><a href="cuda.html#cb25-1"></a><span class="pp">#include </span><span class="im">&lt;cuda_runtime.h&gt;</span></span>
+<span id="cb25-2"><a href="cuda.html#cb25-2"></a><span class="pp">#include </span><span class="im">&quot;./sharedlib.h&quot;</span></span>
+<span id="cb25-3"><a href="cuda.html#cb25-3"></a></span>
+<span id="cb25-4"><a href="cuda.html#cb25-4"></a>__global__ <span class="dt">void</span> cuadd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">unsigned</span> <span class="dt">int</span> N){</span>
+<span id="cb25-5"><a href="cuda.html#cb25-5"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> id = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span id="cb25-6"><a href="cuda.html#cb25-6"></a>    <span class="cf">if</span>(id &lt; N){</span>
+<span id="cb25-7"><a href="cuda.html#cb25-7"></a>        c[id] = a[id] + b[id];</span>
+<span id="cb25-8"><a href="cuda.html#cb25-8"></a>    }</span>
+<span id="cb25-9"><a href="cuda.html#cb25-9"></a>}</span>
+<span id="cb25-10"><a href="cuda.html#cb25-10"></a></span>
+<span id="cb25-11"><a href="cuda.html#cb25-11"></a><span class="dt">void</span> vecadd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">unsigned</span> <span class="dt">int</span> N){</span>
+<span id="cb25-12"><a href="cuda.html#cb25-12"></a>    <span class="dt">double</span>* cua;</span>
+<span id="cb25-13"><a href="cuda.html#cb25-13"></a>    <span class="dt">double</span>* cub;</span>
+<span id="cb25-14"><a href="cuda.html#cb25-14"></a>    <span class="dt">double</span>* cuc;</span>
+<span id="cb25-15"><a href="cuda.html#cb25-15"></a>    cudaMalloc(&amp;cua, N*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb25-16"><a href="cuda.html#cb25-16"></a>    cudaMalloc(&amp;cub, N*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb25-17"><a href="cuda.html#cb25-17"></a>    cudaMalloc(&amp;cuc, N*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb25-18"><a href="cuda.html#cb25-18"></a>    cudaMemcpy(cua, a, N*<span class="kw">sizeof</span>(<span class="dt">double</span>), cudaMemcpyHostToDevice);</span>
+<span id="cb25-19"><a href="cuda.html#cb25-19"></a>    cudaMemcpy(cub, b, N*<span class="kw">sizeof</span>(<span class="dt">double</span>), cudaMemcpyHostToDevice);</span>
+<span id="cb25-20"><a href="cuda.html#cb25-20"></a>    cuadd&lt;&lt;&lt;(N+<span class="dv">127</span>)/<span class="dv">128</span>,<span class="dv">128</span>&gt;&gt;&gt;(cua,cub,cuc,N);</span>
+<span id="cb25-21"><a href="cuda.html#cb25-21"></a>    cudaMemcpy(c, cuc, N*<span class="kw">sizeof</span>(<span class="dt">double</span>), cudaMemcpyDeviceToHost);</span>
+<span id="cb25-22"><a href="cuda.html#cb25-22"></a>    cudaFree(cua);</span>
+<span id="cb25-23"><a href="cuda.html#cb25-23"></a>    cudaFree(cub);</span>
+<span id="cb25-24"><a href="cuda.html#cb25-24"></a>    cudaFree(cuc);</span>
+<span id="cb25-25"><a href="cuda.html#cb25-25"></a>}</span></code></pre></div>
+</div>
+<div id="compile" class="section level4">
+<h4><span class="header-section-number">5.5.5.3</span> compile</h4>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="cuda.html#cb26-1"></a><span class="ex">nvcc</span> --compiler-options <span class="st">&#39;-fPIC&#39;</span> -o libcusharedlib.so --shared share.cu</span></code></pre></div>
+</div>
+<div id="use" class="section level4">
+<h4><span class="header-section-number">5.5.5.4</span> use</h4>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="cuda.html#cb27-1"></a>$ <span class="ex">root</span></span>
+<span id="cb27-2"><a href="cuda.html#cb27-2"></a><span class="ex">root</span> [0] <span class="co">#include &quot;sharedlib.h&quot;</span></span>
+<span id="cb27-3"><a href="cuda.html#cb27-3"></a><span class="ex">root</span> [1] .L libcusharedlib.so</span>
+<span id="cb27-4"><a href="cuda.html#cb27-4"></a><span class="ex">root</span> [2] double* a = (double*)<span class="ex">malloc</span>(1024*sizeof(double))</span>
+<span id="cb27-5"><a href="cuda.html#cb27-5"></a><span class="ex">root</span> [3] for(int i = 0<span class="kw">;</span> <span class="ex">i</span> <span class="op">&lt;</span> 1024<span class="kw">;</span> <span class="ex">i++</span>)<span class="kw">{</span> <span class="ex">a</span>[i] = (double)<span class="ex">i</span><span class="kw">;</span> <span class="kw">}</span></span>
+<span id="cb27-6"><a href="cuda.html#cb27-6"></a><span class="ex">root</span> [4] double* c = (double*)<span class="ex">malloc</span>(1024*sizeof(double))</span>
+<span id="cb27-7"><a href="cuda.html#cb27-7"></a><span class="ex">root</span> [5] vecadd(a, a, c, 1024)</span>
+<span id="cb27-8"><a href="cuda.html#cb27-8"></a><span class="ex">root</span> [6] c[42] // 84.0000</span>
+<span id="cb27-9"><a href="cuda.html#cb27-9"></a><span class="ex">root</span> [7] free(a)</span>
+<span id="cb27-10"><a href="cuda.html#cb27-10"></a><span class="ex">root</span> [8] free(b)</span>
+<span id="cb27-11"><a href="cuda.html#cb27-11"></a><span class="ex">root</span> [9] .q</span></code></pre></div>
+</div>
+</div>
+<div id="不支持c的情况" class="section level3">
+<h3><span class="header-section-number">5.5.6</span> 不支持c++的情况</h3>
+<p>一些编程语言不支持调用c++写成的库，只支持c的（以及在需要c调用c++的库的情况）。这时候要对需要导出的函数做一点点处理。要将需要导出的函数声明放到<code>extern "C"</code>里面。比如在头文件里</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb28-1"><a href="cuda.html#cb28-1"></a><span class="kw">extern</span> <span class="st">&quot;C&quot;</span>{</span>
+<span id="cb28-2"><a href="cuda.html#cb28-2"></a>  <span class="dt">int</span> someIntFunction();</span>
+<span id="cb28-3"><a href="cuda.html#cb28-3"></a>  <span class="dt">double</span> someDoubleFunction();</span>
+<span id="cb28-4"><a href="cuda.html#cb28-4"></a>  <span class="co">//......</span></span>
+<span id="cb28-5"><a href="cuda.html#cb28-5"></a>}</span></code></pre></div>
+</div>
+</div>
+<div id="cudabase_sum" class="section level2">
+<h2><span class="header-section-number">5.6</span> 本章小结</h2>
+<p>感觉怎么样？有点似懂非懂？要不尝试翻回来再看看代码，自己改一改试一试，有没有觉得稍微明白一点了？可以试着改一改thread和block的结构，看看运行效率有怎样的变化。</p>
+<p>还有要注意一点，这里程序比较简单，所以完全没有安排错误处理。<code>cudaMalloc</code>，<code>cudaMemcpy</code>等函数都是有返回值的，会返回一个<code>cudaError_t</code>的类型。大家完全可以用<code>auto</code>类型来接收返回值。<code>cudaError_t</code>是一个枚举类型，其实跟int没太大区别。当返回值是<code>cudaSuccess</code>（这个等于0，可以直接把返回值和0作比较判断有没有error）的时候说明成功了，没有错误。其他各种错误可以参考<a href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038">cudaRuntimeAPI</a></p>
+<p>此外，kernel函数也有可能运行不成功，比如因为占用寄存器数量过多且每个block里的线程数比较多，可能会导致kernel没有成功执行。要处理这种错误，可以这样做：</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="cuda.html#cb29-1"></a>some_kernel&lt;&lt;&lt;<span class="dv">10</span>,<span class="dv">1024</span>&gt;&gt;();</span>
+<span id="cb29-2"><a href="cuda.html#cb29-2"></a><span class="dt">auto</span> err = cudaGetLastError();</span>
+<span id="cb29-3"><a href="cuda.html#cb29-3"></a><span class="cf">if</span>(err != cudaSuccess){</span>
+<span id="cb29-4"><a href="cuda.html#cb29-4"></a>  <span class="co">//handle the error</span></span>
+<span id="cb29-5"><a href="cuda.html#cb29-5"></a>}</span></code></pre></div>
+<p>喜闻乐见的自问自答环节！</p>
+<hr />
+<p><strong>问：为什么thread的数量是32的倍数比较好？</strong><br />
+事实上，CUDA搞的是一种SIMT模型（single instruction multiple threads），也就是说，一些线程是共享一条指令的。目前的所有支持CUDA的显卡都是以32个线程为一组（称作一个线程束（warp）），它们共同接受同一个指令并进行计算。如果一个block里的thread数目不是32的倍数，假设是48，那么显卡会把这48个线程分成两组，一组32线程，一组16线程。在执行16线程的一组的时候，只有16个线程在干活，另外16个线程只能站在干岸上看着，形成一方有难八方围观之势。为什么这16个线程不能干点别的呢？因为硬件上就是把32个线程作为一组的来调度的。<br />
+基于同样的原因，kernel里面要尽量避免不必要的条件判断。因为每次发送指令，接受指令的线程都要干一样的事情，所以在条件语句中，是一个分支的线程执行完，再另一个分支的线程执行。如果两个分支的跳转概率一样，可能就会使得性能减半。</p>
+<hr />
+<p><strong>问：三维grid和三维block意义何在？</strong><br />
+事实上，grid和block的维度对于计算机来说并没有太大的意义，但是对于人来说还是有意义的。使用什么样的grid和block结构取决于数据的“样子”。<br />
+就像一维数组和三维数组一样，原则上，用多维数组处理的问题都可以转化到用一维数组来处理。</p>
+<blockquote>
+<p>比如10*10的数组，访问起来是<code>array2[i][j]</code><br />
+换成一维数组呢，就可以这样访问：<code>array[i*10+j]</code></p>
+</blockquote>
+<hr />
+<p><strong>问：二维和三维的block里面thread数量是怎么限制的？</strong><br />
+不考虑寄存器数量限制的话：<br />
+首先，一个block里面不能有超过1024个线程。其次，在每个维度上都有一个最大线程数。只有同时满足以上限制才可以。（第一个维度，也就是x的最大值肯定是1024，这保证了一维的block可以用满线程数限制）。<br />
+具体的最大值，还有好多其他参数，包括寄存器数量等等都有相应的函数可以查询。具体可以参考cuda的sample里面的<code>1_Utilities/deviceQuery</code>里面的程序以及运行结果。</p>
+<hr />
+<p><strong>问：我是使用printf法来debug的那种选手怎么办？</strong><br />
+没关系，kernel函数里可以使用printf。但是要注意，在kernel里用printf的时候不要把grid和block设置得太大，否则你会得到铺天盖地的打印信息。（也可以在kernel里面判断，只有在特定block的特定thread打印信息也是可行的）</p>
+<hr />
+<p><strong>问：很好，那么这到底有什么用呢？</strong><br />
+答：正常小朋友一般问不出来这种问题。</p>
+<hr />
+<p><strong>再补充一个信息（可能管理员会发现比较有用）。可以使用<code>nvidia-smi</code>查看GPU的工作情况。这个运行一下只会显示一次信息。如果相要持续显示信息，可以使用<code>-l</code>或者<code>-lms</code>选项。具体见<code>nvidia-smi -h</code>输出的帮助信息。</strong></p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="gpuintro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="cuda-adv.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yihui/bookdown-chinese/edit/master/03-cuda.Rmd",
+"text": "编辑"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["bookdown.pdf", "bookdown.epub"],
+"toc": {
+"collapse": "none"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>A 汇编语言简介 | x40并行编程指南</title>
+  <meta name="description" content="在x40服务器上并行运算" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="A 汇编语言简介 | x40并行编程指南" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="在x40服务器上并行运算" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A 汇编语言简介 | x40并行编程指南" />
+  
+  <meta name="twitter:description" content="在x40服务器上并行运算" />
+  
+
+<meta name="author" content="cucumber" />
+
+
+<meta name="date" content="2020-09-16" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="nsight.html"/>
+<link rel="next" href="float.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css\style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">x40并行编程指南</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>前言</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#致谢"><i class="fa fa-check"></i>致谢</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="author.html"><a href="author.html"><i class="fa fa-check"></i>作者简介</a></li>
+<li class="chapter" data-level="" data-path="x40.html"><a href="x40.html"><i class="fa fa-check"></i>x40服务器</a><ul>
+<li class="chapter" data-level="0.1" data-path="x40.html"><a href="x40.html#基本硬件信息"><i class="fa fa-check"></i><b>0.1</b> 基本硬件信息</a></li>
+</ul></li>
+<li class="part"><span><b>I c语言并行编程</b></span></li>
+<li class="chapter" data-level="1" data-path="csimd.html"><a href="csimd.html"><i class="fa fa-check"></i><b>1</b> SIMD 和 SSE/AVX</a><ul>
+<li class="chapter" data-level="1.1" data-path="csimd.html"><a href="csimd.html#muladd_base"><i class="fa fa-check"></i><b>1.1</b> 一个简单的程序</a></li>
+<li class="chapter" data-level="1.2" data-path="csimd.html"><a href="csimd.html#csimd_first"><i class="fa fa-check"></i><b>1.2</b> 我的第一个SIMD程序！</a></li>
+<li class="chapter" data-level="1.3" data-path="csimd.html"><a href="csimd.html#csimd_reg"><i class="fa fa-check"></i><b>1.3</b> 搞个寄存器变量</a></li>
+<li class="chapter" data-level="1.4" data-path="csimd.html"><a href="csimd.html#csimd_asm"><i class="fa fa-check"></i><b>1.4</b> 我比编译器聪明系列</a></li>
+<li class="chapter" data-level="1.5" data-path="csimd.html"><a href="csimd.html#csimd_gccO3"><i class="fa fa-check"></i><b>1.5</b> 编译器比我聪明系列</a></li>
+<li class="chapter" data-level="1.6" data-path="csimd.html"><a href="csimd.html#csimd_sum"><i class="fa fa-check"></i><b>1.6</b> 本章小结</a></li>
+<li class="chapter" data-level="1.7" data-path="csimd.html"><a href="csimd.html#csimd_add"><i class="fa fa-check"></i><b>1.7</b> 补充内容</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="cmt.html"><a href="cmt.html"><i class="fa fa-check"></i><b>2</b> c语言多线程编程</a><ul>
+<li class="chapter" data-level="2.1" data-path="cmt.html"><a href="cmt.html#cmt_muladd"><i class="fa fa-check"></i><b>2.1</b> 还是乘加运算</a></li>
+<li class="chapter" data-level="2.2" data-path="cmt.html"><a href="cmt.html#cmt_sum"><i class="fa fa-check"></i><b>2.2</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="fma.html"><a href="fma.html"><i class="fa fa-check"></i><b>3</b> 第一部分结束语</a></li>
+<li class="part"><span><b>II GPGPU</b></span></li>
+<li class="chapter" data-level="4" data-path="gpuintro.html"><a href="gpuintro.html"><i class="fa fa-check"></i><b>4</b> GPU简介</a><ul>
+<li class="chapter" data-level="4.1" data-path="gpuintro.html"><a href="gpuintro.html#gpu_about"><i class="fa fa-check"></i><b>4.1</b> 图形处理是怎么回事？</a></li>
+<li class="chapter" data-level="4.2" data-path="gpuintro.html"><a href="gpuintro.html#gpu_gpgpu"><i class="fa fa-check"></i><b>4.2</b> 那GPGPU是啥？</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="cuda.html"><a href="cuda.html"><i class="fa fa-check"></i><b>5</b> CUDA</a><ul>
+<li class="chapter" data-level="5.1" data-path="cuda.html"><a href="cuda.html#before_start"><i class="fa fa-check"></i><b>5.1</b> 开始之前</a></li>
+<li class="chapter" data-level="5.2" data-path="cuda.html"><a href="cuda.html#cuda_first"><i class="fa fa-check"></i><b>5.2</b> 我的第一个cuda程序</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="cuda.html"><a href="cuda.html#include-cuda_runtime.h"><i class="fa fa-check"></i><b>5.2.1</b> #include &lt;cuda_runtime.h&gt;</a></li>
+<li class="chapter" data-level="5.2.2" data-path="cuda.html"><a href="cuda.html#global__-void-muladd"><i class="fa fa-check"></i><b>5.2.2</b> <code>__global__ void muladd</code></a></li>
+<li class="chapter" data-level="5.2.3" data-path="cuda.html"><a href="cuda.html#blockidxblockdim和threadidx"><i class="fa fa-check"></i><b>5.2.3</b> <code>blockIdx</code>,<code>blockDim</code>和<code>threadIdx</code></a></li>
+<li class="chapter" data-level="5.2.4" data-path="cuda.html"><a href="cuda.html#cudamalloc"><i class="fa fa-check"></i><b>5.2.4</b> <code>cudaMalloc</code></a></li>
+<li class="chapter" data-level="5.2.5" data-path="cuda.html"><a href="cuda.html#cudamemcpy"><i class="fa fa-check"></i><b>5.2.5</b> <code>cudaMemcpy</code></a></li>
+<li class="chapter" data-level="5.2.6" data-path="cuda.html"><a href="cuda.html#section"><i class="fa fa-check"></i><b>5.2.6</b> <code>&lt;&lt;&lt;32, 256&gt;&gt;&gt;</code></a></li>
+<li class="chapter" data-level="5.2.7" data-path="cuda.html"><a href="cuda.html#cudafree"><i class="fa fa-check"></i><b>5.2.7</b> <code>cudaFree</code></a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="cuda.html"><a href="cuda.html#cuda新增类型"><i class="fa fa-check"></i><b>5.3</b> CUDA新增类型</a></li>
+<li class="chapter" data-level="5.4" data-path="cuda.html"><a href="cuda.html#cuda_device"><i class="fa fa-check"></i><b>5.4</b> 使用<code>__device__</code>函数</a></li>
+<li class="chapter" data-level="5.5" data-path="cuda.html"><a href="cuda.html#cuda_shared"><i class="fa fa-check"></i><b>5.5</b> 生成动态链接库</a><ul>
+<li class="chapter" data-level="5.5.1" data-path="cuda.html"><a href="cuda.html#用c做一个动态链接库"><i class="fa fa-check"></i><b>5.5.1</b> 用c++做一个动态链接库</a></li>
+<li class="chapter" data-level="5.5.2" data-path="cuda.html"><a href="cuda.html#生成cuda的动态链接库"><i class="fa fa-check"></i><b>5.5.2</b> 生成cuda的动态链接库</a></li>
+<li class="chapter" data-level="5.5.3" data-path="cuda.html"><a href="cuda.html#使用动态链接库"><i class="fa fa-check"></i><b>5.5.3</b> 使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.4" data-path="cuda.html"><a href="cuda.html#在root中交互地使用动态链接库"><i class="fa fa-check"></i><b>5.5.4</b> 在root中交互地使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.5" data-path="cuda.html"><a href="cuda.html#在root中交互地使用cuda的完整例子"><i class="fa fa-check"></i><b>5.5.5</b> 在root中交互地使用cuda的完整例子</a></li>
+<li class="chapter" data-level="5.5.6" data-path="cuda.html"><a href="cuda.html#不支持c的情况"><i class="fa fa-check"></i><b>5.5.6</b> 不支持c++的情况</a></li>
+</ul></li>
+<li class="chapter" data-level="5.6" data-path="cuda.html"><a href="cuda.html#cudabase_sum"><i class="fa fa-check"></i><b>5.6</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="cuda-adv.html"><a href="cuda-adv.html"><i class="fa fa-check"></i><b>6</b> CUDA高级优化技巧</a><ul>
+<li class="chapter" data-level="6.1" data-path="cuda-adv.html"><a href="cuda-adv.html#纹理和纹理内存"><i class="fa fa-check"></i><b>6.1</b> 纹理和纹理内存</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="cuda-adv.html"><a href="cuda-adv.html#什么是纹理"><i class="fa fa-check"></i><b>6.1.1</b> 什么是纹理？</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cuda-adv.html"><a href="cuda-adv.html#cuda纹理的寻址模式和线性插值"><i class="fa fa-check"></i><b>6.1.2</b> CUDA纹理的寻址模式和线性插值</a></li>
+<li class="chapter" data-level="6.1.3" data-path="cuda-adv.html"><a href="cuda-adv.html#举一个例子"><i class="fa fa-check"></i><b>6.1.3</b> 举一个例子</a></li>
+<li class="chapter" data-level="6.1.4" data-path="cuda-adv.html"><a href="cuda-adv.html#如何实现双精度纹理"><i class="fa fa-check"></i><b>6.1.4</b> 如何实现双精度纹理</a></li>
+<li class="chapter" data-level="6.1.5" data-path="cuda-adv.html"><a href="cuda-adv.html#所以为什么要用纹理"><i class="fa fa-check"></i><b>6.1.5</b> 所以为什么要用纹理？</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cuda-adv.html"><a href="cuda-adv.html#流"><i class="fa fa-check"></i><b>6.2</b> 流</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="cuda-adv.html"><a href="cuda-adv.html#举个例子"><i class="fa fa-check"></i><b>6.2.1</b> 举个例子</a></li>
+<li class="chapter" data-level="6.2.2" data-path="cuda-adv.html"><a href="cuda-adv.html#回调"><i class="fa fa-check"></i><b>6.2.2</b> 回调</a></li>
+<li class="chapter" data-level="6.2.3" data-path="cuda-adv.html"><a href="cuda-adv.html#什么时候要使用流"><i class="fa fa-check"></i><b>6.2.3</b> 什么时候要使用流</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="cuda-adv.html"><a href="cuda-adv.html#缓存和共享内存的分配"><i class="fa fa-check"></i><b>6.3</b> 缓存和共享内存的分配</a></li>
+<li class="chapter" data-level="6.4" data-path="cuda-adv.html"><a href="cuda-adv.html#cuadv_sum"><i class="fa fa-check"></i><b>6.4</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="nsight.html"><a href="nsight.html"><i class="fa fa-check"></i><b>7</b> 使用Nsight优化程序</a><ul>
+<li class="chapter" data-level="7.1" data-path="nsight.html"><a href="nsight.html#下载和安装"><i class="fa fa-check"></i><b>7.1</b> 下载和安装</a></li>
+<li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
+<li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
+<li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+</ul></li>
+<li class="appendix"><span><b>附录</b></span></li>
+<li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
+<li class="chapter" data-level="A.1" data-path="assemble.html"><a href="assemble.html#基本操作"><i class="fa fa-check"></i><b>A.1</b> 基本操作</a></li>
+<li class="chapter" data-level="A.2" data-path="assemble.html"><a href="assemble.html#神奇的装载有效地址"><i class="fa fa-check"></i><b>A.2</b> 神奇的“装载有效地址”</a></li>
+<li class="chapter" data-level="A.3" data-path="assemble.html"><a href="assemble.html#c语言中的内联汇编"><i class="fa fa-check"></i><b>A.3</b> c语言中的内联汇编</a></li>
+</ul></li>
+<li class="chapter" data-level="B" data-path="float.html"><a href="float.html"><i class="fa fa-check"></i><b>B</b> 浮点数的计算机表示</a><ul>
+<li class="chapter" data-level="B.1" data-path="float.html"><a href="float.html#单精度浮点数"><i class="fa fa-check"></i><b>B.1</b> 单精度浮点数</a><ul>
+<li class="chapter" data-level="B.1.1" data-path="float.html"><a href="float.html#规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.1</b> 规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.2" data-path="float.html"><a href="float.html#非规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.2</b> 非规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.3" data-path="float.html"><a href="float.html#特殊值"><i class="fa fa-check"></i><b>B.1.3</b> 特殊值</a></li>
+</ul></li>
+<li class="chapter" data-level="B.2" data-path="float.html"><a href="float.html#双精度浮点数和半精度浮点数"><i class="fa fa-check"></i><b>B.2</b> 双精度浮点数和半精度浮点数</a></li>
+</ul></li>
+<li class="chapter" data-level="C" data-path="cache.html"><a href="cache.html"><i class="fa fa-check"></i><b>C</b> 高速缓存</a><ul>
+<li class="chapter" data-level="C.1" data-path="cache.html"><a href="cache.html#局部性原理"><i class="fa fa-check"></i><b>C.1</b> 局部性原理</a></li>
+<li class="chapter" data-level="C.2" data-path="cache.html"><a href="cache.html#缓存的组态"><i class="fa fa-check"></i><b>C.2</b> 缓存的组态</a></li>
+<li class="chapter" data-level="C.3" data-path="cache.html"><a href="cache.html#缓存优化"><i class="fa fa-check"></i><b>C.3</b> 缓存优化</a></li>
+<li class="chapter" data-level="C.4" data-path="cache.html"><a href="cache.html#如何查看cpu的缓存组态"><i class="fa fa-check"></i><b>C.4</b> 如何查看cpu的缓存组态</a></li>
+<li class="chapter" data-level="C.5" data-path="cache.html"><a href="cache.html#感受一下缓存不命中"><i class="fa fa-check"></i><b>C.5</b> 感受一下缓存不命中</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>参考文献</a></li>
+<li class="divider"></li>
+<li><a href="https://bookdown.org" target="blank">本书由 bookdown 强力驱动</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">x40并行编程指南</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="assemble" class="section level1">
+<h1><span class="header-section-number">A</span> 汇编语言简介</h1>
+<p>要讲汇编语言，就不得不提计算机是如何工作的。众所周知，计算机（硬件）是看不懂你写的程序的。需要用编译器或者解释器将程序变成计算机能看懂的二进制码才可以。</p>
+<p>汇编语言其实是一种“助记符”。汇编语句和二进制机器码是一一对应的。相比于二进制机器码，汇编语言多少是可以读懂的。</p>
+<div id="基本操作" class="section level2">
+<h2><span class="header-section-number">A.1</span> 基本操作</h2>
+<p>CPU会做些什么事呢？基本就是通过内存地址从内存里取几个字节到自己的寄存器里，然后对各个寄存器进行一番操作，什么加减乘除啊移位啊与或非啊什么的，然后还能把结果再存到内存里。</p>
+<p>那么，条件判断呀调用函数呀是怎么实现的呢？条件判断是分为两步的，第一步做比较，然后一些特别的寄存器会根据比较结果设置为相应的值；第二步，根据一个或几个特别的寄存器里面的值是0或者1选择是否跳转到另一个位置。而跳转实际就是把指向当前指令的指针加或减一个合适的值，而这个指针的值其实也是保存在一个寄存器中的。函数调用呢，就是先把一些需要保护的寄存器内容暂存到内存里，然后在合适的寄存器或内存地址里设置好要传递的参数，并且把当前的指令指针保存到内存中，然后跳转到相应函数位置。函数执行完毕后再把返回值放到指定的寄存器或者内存位置，然后再把保存起来的指令指针恢复到寄存器里。关于哪些寄存器需要调用方保护，哪些需要被调用方保护，用哪些寄存器传递参数和返回值则取决于编程语言的调用约定。</p>
+<p>汇编语言中的数值拷贝（从内存到寄存器，寄存器到寄存器，寄存器到内存，立即数到寄存器等等）被称作“mov”，虽然事实上并不是移动，“mov”完后原来位置的信息并不会被消掉。</p>
+<blockquote>
+<p>立即数指的是直接有一个数字。从立即数到寄存器的“mov”相当于把寄存器设置成一个指定的值。</p>
+</blockquote>
+</div>
+<div id="神奇的装载有效地址" class="section level2">
+<h2><span class="header-section-number">A.2</span> 神奇的“装载有效地址”</h2>
+<p>有一条指令<code>lea</code>，是“load effective address”的缩写。这条指令本来是用于计算内存地址的，通过一个基地址，一个偏移量和每个元素的大小来计算出需要的地址。但是卑鄙的人类竟然动起了歪心思，用这条指令来做代数运算。</p>
+<p>举个例子，比如要计算一个整数乘以5再加上3，汇编代码有可能是这样的</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="assemble.html#cb35-1"></a>  <span class="ex">lea</span> 0x3(%rdi,%rdi,4), <span class="ex">%rax</span></span></code></pre></div>
+<p>然后rax寄存器中的值就等于rdi寄存器的值乘上5然后再加三。</p>
+<p>真正用于装载地址的时候，括号里面第一个值相当于基地址，第二个是偏移量，第三个是每一个偏移对应的字节数(只能是1,2,4,8)，括号前面的数字是以byte位单位的常数偏移量。</p>
+<p>所有编译器就发现了这东西完全可以用于装载地址以外的用途。上面的例子中，计算了rdi+rdi*4+3，也就是我们想要的乘5加3.</p>
+</div>
+<div id="c语言中的内联汇编" class="section level2">
+<h2><span class="header-section-number">A.3</span> c语言中的内联汇编</h2>
+<p><strong>不同编译器里使用内联汇编的方法可能有微小的不同。这里是gcc的情况</strong></p>
+<p>gcc中，内联汇编写在<code>__asm__</code>里面。如果在<code>__asm__</code>后加了<code>__volatile__</code>则表示要求编译器不要对这里面的汇编代码进行优化。</p>
+<p>这里用前面第一部分的AVX汇编举例</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="assemble.html#cb36-1"></a>__asm__ __volatile__(</span>
+<span id="cb36-2"><a href="assemble.html#cb36-2"></a>            <span class="st">&quot;movq %0, %%rax </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-3"><a href="assemble.html#cb36-3"></a>            <span class="st">&quot;movq %1, %%rbx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-4"><a href="assemble.html#cb36-4"></a>            <span class="st">&quot;movq %2, %%rcx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-5"><a href="assemble.html#cb36-5"></a>            <span class="st">&quot;movq %3, %%rdx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-6"><a href="assemble.html#cb36-6"></a>            <span class="st">&quot;movq %4, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-7"><a href="assemble.html#cb36-7"></a>            <span class="st">&quot;shr  $2, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-8"><a href="assemble.html#cb36-8"></a>            <span class="st">&quot;movq $0, %%r9  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-9"><a href="assemble.html#cb36-9"></a>            <span class="st">&quot;jmp  .check_%= </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-10"><a href="assemble.html#cb36-10"></a>            <span class="st">&quot;.loop_%=:         </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-11"><a href="assemble.html#cb36-11"></a>            <span class="st">&quot;shl $2, %%r9   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-12"><a href="assemble.html#cb36-12"></a>            <span class="st">&quot;leaq (%%rax, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-13"><a href="assemble.html#cb36-13"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm0       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-14"><a href="assemble.html#cb36-14"></a>            <span class="st">&quot;leaq (%%rbx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-15"><a href="assemble.html#cb36-15"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm1       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-16"><a href="assemble.html#cb36-16"></a>            <span class="st">&quot;leaq (%%rcx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-17"><a href="assemble.html#cb36-17"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm2       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-18"><a href="assemble.html#cb36-18"></a>            <span class="st">&quot;vmulpd %%ymm0, %%ymm1, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-19"><a href="assemble.html#cb36-19"></a>            <span class="st">&quot;vaddpd %%ymm2, %%ymm3, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-20"><a href="assemble.html#cb36-20"></a>            <span class="st">&quot;leaq (%%rdx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-21"><a href="assemble.html#cb36-21"></a>            <span class="st">&quot;vmovupd %%ymm3, (%%r10)       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-22"><a href="assemble.html#cb36-22"></a>            <span class="st">&quot;shr $2, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-23"><a href="assemble.html#cb36-23"></a>            <span class="st">&quot;add $1, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-24"><a href="assemble.html#cb36-24"></a>            <span class="st">&quot;.check_%=:                    </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-25"><a href="assemble.html#cb36-25"></a>            <span class="st">&quot;cmpq %%r8, %%r9               </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-26"><a href="assemble.html#cb36-26"></a>            <span class="st">&quot;jl .loop_%=                   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb36-27"><a href="assemble.html#cb36-27"></a>            :</span>
+<span id="cb36-28"><a href="assemble.html#cb36-28"></a>            :<span class="st">&quot;m&quot;</span>(a), <span class="st">&quot;m&quot;</span>(b), <span class="st">&quot;m&quot;</span>(c), <span class="st">&quot;m&quot;</span>(d), <span class="st">&quot;m&quot;</span>(N)</span>
+<span id="cb36-29"><a href="assemble.html#cb36-29"></a>            :<span class="st">&quot;%rax&quot;</span>, <span class="st">&quot;%rbx&quot;</span>, <span class="st">&quot;%rcx&quot;</span>, <span class="st">&quot;%rdx&quot;</span>, <span class="st">&quot;%r8&quot;</span>, <span class="st">&quot;%r9&quot;</span>, <span class="st">&quot;%r10&quot;</span>,</span>
+<span id="cb36-30"><a href="assemble.html#cb36-30"></a>             <span class="st">&quot;%ymm0&quot;</span>, <span class="st">&quot;%ymm1&quot;</span>, <span class="st">&quot;%ymm2&quot;</span>, <span class="st">&quot;%ymm3&quot;</span>, <span class="st">&quot;memory&quot;</span></span>
+<span id="cb36-31"><a href="assemble.html#cb36-31"></a>            );</span></code></pre></div>
+<p>首先，每行写一句只是为了看起来方便。在c语言中，一个长的字符串是可以换行的，分到每一行后分别加引号，中间没有逗号就会当作一个长的字符串。</p>
+<p>每一句后面加<code>\n\t</code>，否则多条汇编语句会在结果中连成一行，无法被汇编器读懂。</p>
+<blockquote>
+<p>汇编代码一行一句，不用分号</p>
+</blockquote>
+<p><code>__asm__</code>的括号里首先要写的就是我们要执行的汇编代码之后用冒号隔开三个部分，分别是要写入的变量，要读取的变量和发生变动的寄存器。</p>
+<p>变量前面引号里面“m”表示内存内容，用“r”则表示这个变量应该被放入寄存器（由编译器指定一个寄存器）。要写入的寄存器变量要写成“=r”。</p>
+<p>后面寄存器列表里面，把汇编代码中用到的寄存器都新进来就对了。似乎改变了内存的话要写“memory”，但没有验证过，反正写了不会出问题。</p>
+<p>在汇编代码里引用变量要用“%”，百分号后面的数字表示变量的编号（后面从写入变量到读取变量从0开始连续编号，数一数是第几个）。由于这里使用了百分号，使用寄存器就要多写一个百分号，比如“%eax”就要变成“%%eax”.</p>
+<p>在寄存器外面加一个括号表示把这个寄存器中的值当作一个地址，要的是这个地址的内存里面的东西（除了装载有效地址的时候这个只是当作一个地址，不会实际访问内存）。</p>
+<p>汇编代码中以冒号结尾的是一个标签，跳转的时候可以跳转到标签。最后编译好多二进制里是没有这个标签的，跳转会全部被翻译为跳转到相应的地址。在gcc的内联汇编里面，跳转标签要在后面加上<code>_%</code>。</p>
+<p>在<code>cmpq %%r8, %%r9</code>这句，比较了r9寄存器和r8寄存器中的值，并相应地设置了特别的用于比较和跳转的寄存器。后面紧跟的一句<code>jl .loop_%</code>，是说如果判出来大于，就要跳转，否则不跳。</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="nsight.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="float.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yihui/bookdown-chinese/edit/master/07-append.Rmd",
+"text": "编辑"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["bookdown.pdf", "bookdown.epub"],
+"toc": {
+"collapse": "none"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>第 2 章 c语言多线程编程 | x40并行编程指南</title>
+  <meta name="description" content="在x40服务器上并行运算" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="第 2 章 c语言多线程编程 | x40并行编程指南" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="在x40服务器上并行运算" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="第 2 章 c语言多线程编程 | x40并行编程指南" />
+  
+  <meta name="twitter:description" content="在x40服务器上并行运算" />
+  
+
+<meta name="author" content="cucumber" />
+
+
+<meta name="date" content="2020-09-16" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="csimd.html"/>
+<link rel="next" href="fma.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css\style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">x40并行编程指南</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>前言</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#致谢"><i class="fa fa-check"></i>致谢</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="author.html"><a href="author.html"><i class="fa fa-check"></i>作者简介</a></li>
+<li class="chapter" data-level="" data-path="x40.html"><a href="x40.html"><i class="fa fa-check"></i>x40服务器</a><ul>
+<li class="chapter" data-level="0.1" data-path="x40.html"><a href="x40.html#基本硬件信息"><i class="fa fa-check"></i><b>0.1</b> 基本硬件信息</a></li>
+</ul></li>
+<li class="part"><span><b>I c语言并行编程</b></span></li>
+<li class="chapter" data-level="1" data-path="csimd.html"><a href="csimd.html"><i class="fa fa-check"></i><b>1</b> SIMD 和 SSE/AVX</a><ul>
+<li class="chapter" data-level="1.1" data-path="csimd.html"><a href="csimd.html#muladd_base"><i class="fa fa-check"></i><b>1.1</b> 一个简单的程序</a></li>
+<li class="chapter" data-level="1.2" data-path="csimd.html"><a href="csimd.html#csimd_first"><i class="fa fa-check"></i><b>1.2</b> 我的第一个SIMD程序！</a></li>
+<li class="chapter" data-level="1.3" data-path="csimd.html"><a href="csimd.html#csimd_reg"><i class="fa fa-check"></i><b>1.3</b> 搞个寄存器变量</a></li>
+<li class="chapter" data-level="1.4" data-path="csimd.html"><a href="csimd.html#csimd_asm"><i class="fa fa-check"></i><b>1.4</b> 我比编译器聪明系列</a></li>
+<li class="chapter" data-level="1.5" data-path="csimd.html"><a href="csimd.html#csimd_gccO3"><i class="fa fa-check"></i><b>1.5</b> 编译器比我聪明系列</a></li>
+<li class="chapter" data-level="1.6" data-path="csimd.html"><a href="csimd.html#csimd_sum"><i class="fa fa-check"></i><b>1.6</b> 本章小结</a></li>
+<li class="chapter" data-level="1.7" data-path="csimd.html"><a href="csimd.html#csimd_add"><i class="fa fa-check"></i><b>1.7</b> 补充内容</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="cmt.html"><a href="cmt.html"><i class="fa fa-check"></i><b>2</b> c语言多线程编程</a><ul>
+<li class="chapter" data-level="2.1" data-path="cmt.html"><a href="cmt.html#cmt_muladd"><i class="fa fa-check"></i><b>2.1</b> 还是乘加运算</a></li>
+<li class="chapter" data-level="2.2" data-path="cmt.html"><a href="cmt.html#cmt_sum"><i class="fa fa-check"></i><b>2.2</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="fma.html"><a href="fma.html"><i class="fa fa-check"></i><b>3</b> 第一部分结束语</a></li>
+<li class="part"><span><b>II GPGPU</b></span></li>
+<li class="chapter" data-level="4" data-path="gpuintro.html"><a href="gpuintro.html"><i class="fa fa-check"></i><b>4</b> GPU简介</a><ul>
+<li class="chapter" data-level="4.1" data-path="gpuintro.html"><a href="gpuintro.html#gpu_about"><i class="fa fa-check"></i><b>4.1</b> 图形处理是怎么回事？</a></li>
+<li class="chapter" data-level="4.2" data-path="gpuintro.html"><a href="gpuintro.html#gpu_gpgpu"><i class="fa fa-check"></i><b>4.2</b> 那GPGPU是啥？</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="cuda.html"><a href="cuda.html"><i class="fa fa-check"></i><b>5</b> CUDA</a><ul>
+<li class="chapter" data-level="5.1" data-path="cuda.html"><a href="cuda.html#before_start"><i class="fa fa-check"></i><b>5.1</b> 开始之前</a></li>
+<li class="chapter" data-level="5.2" data-path="cuda.html"><a href="cuda.html#cuda_first"><i class="fa fa-check"></i><b>5.2</b> 我的第一个cuda程序</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="cuda.html"><a href="cuda.html#include-cuda_runtime.h"><i class="fa fa-check"></i><b>5.2.1</b> #include &lt;cuda_runtime.h&gt;</a></li>
+<li class="chapter" data-level="5.2.2" data-path="cuda.html"><a href="cuda.html#global__-void-muladd"><i class="fa fa-check"></i><b>5.2.2</b> <code>__global__ void muladd</code></a></li>
+<li class="chapter" data-level="5.2.3" data-path="cuda.html"><a href="cuda.html#blockidxblockdim和threadidx"><i class="fa fa-check"></i><b>5.2.3</b> <code>blockIdx</code>,<code>blockDim</code>和<code>threadIdx</code></a></li>
+<li class="chapter" data-level="5.2.4" data-path="cuda.html"><a href="cuda.html#cudamalloc"><i class="fa fa-check"></i><b>5.2.4</b> <code>cudaMalloc</code></a></li>
+<li class="chapter" data-level="5.2.5" data-path="cuda.html"><a href="cuda.html#cudamemcpy"><i class="fa fa-check"></i><b>5.2.5</b> <code>cudaMemcpy</code></a></li>
+<li class="chapter" data-level="5.2.6" data-path="cuda.html"><a href="cuda.html#section"><i class="fa fa-check"></i><b>5.2.6</b> <code>&lt;&lt;&lt;32, 256&gt;&gt;&gt;</code></a></li>
+<li class="chapter" data-level="5.2.7" data-path="cuda.html"><a href="cuda.html#cudafree"><i class="fa fa-check"></i><b>5.2.7</b> <code>cudaFree</code></a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="cuda.html"><a href="cuda.html#cuda新增类型"><i class="fa fa-check"></i><b>5.3</b> CUDA新增类型</a></li>
+<li class="chapter" data-level="5.4" data-path="cuda.html"><a href="cuda.html#cuda_device"><i class="fa fa-check"></i><b>5.4</b> 使用<code>__device__</code>函数</a></li>
+<li class="chapter" data-level="5.5" data-path="cuda.html"><a href="cuda.html#cuda_shared"><i class="fa fa-check"></i><b>5.5</b> 生成动态链接库</a><ul>
+<li class="chapter" data-level="5.5.1" data-path="cuda.html"><a href="cuda.html#用c做一个动态链接库"><i class="fa fa-check"></i><b>5.5.1</b> 用c++做一个动态链接库</a></li>
+<li class="chapter" data-level="5.5.2" data-path="cuda.html"><a href="cuda.html#生成cuda的动态链接库"><i class="fa fa-check"></i><b>5.5.2</b> 生成cuda的动态链接库</a></li>
+<li class="chapter" data-level="5.5.3" data-path="cuda.html"><a href="cuda.html#使用动态链接库"><i class="fa fa-check"></i><b>5.5.3</b> 使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.4" data-path="cuda.html"><a href="cuda.html#在root中交互地使用动态链接库"><i class="fa fa-check"></i><b>5.5.4</b> 在root中交互地使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.5" data-path="cuda.html"><a href="cuda.html#在root中交互地使用cuda的完整例子"><i class="fa fa-check"></i><b>5.5.5</b> 在root中交互地使用cuda的完整例子</a></li>
+<li class="chapter" data-level="5.5.6" data-path="cuda.html"><a href="cuda.html#不支持c的情况"><i class="fa fa-check"></i><b>5.5.6</b> 不支持c++的情况</a></li>
+</ul></li>
+<li class="chapter" data-level="5.6" data-path="cuda.html"><a href="cuda.html#cudabase_sum"><i class="fa fa-check"></i><b>5.6</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="cuda-adv.html"><a href="cuda-adv.html"><i class="fa fa-check"></i><b>6</b> CUDA高级优化技巧</a><ul>
+<li class="chapter" data-level="6.1" data-path="cuda-adv.html"><a href="cuda-adv.html#纹理和纹理内存"><i class="fa fa-check"></i><b>6.1</b> 纹理和纹理内存</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="cuda-adv.html"><a href="cuda-adv.html#什么是纹理"><i class="fa fa-check"></i><b>6.1.1</b> 什么是纹理？</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cuda-adv.html"><a href="cuda-adv.html#cuda纹理的寻址模式和线性插值"><i class="fa fa-check"></i><b>6.1.2</b> CUDA纹理的寻址模式和线性插值</a></li>
+<li class="chapter" data-level="6.1.3" data-path="cuda-adv.html"><a href="cuda-adv.html#举一个例子"><i class="fa fa-check"></i><b>6.1.3</b> 举一个例子</a></li>
+<li class="chapter" data-level="6.1.4" data-path="cuda-adv.html"><a href="cuda-adv.html#如何实现双精度纹理"><i class="fa fa-check"></i><b>6.1.4</b> 如何实现双精度纹理</a></li>
+<li class="chapter" data-level="6.1.5" data-path="cuda-adv.html"><a href="cuda-adv.html#所以为什么要用纹理"><i class="fa fa-check"></i><b>6.1.5</b> 所以为什么要用纹理？</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cuda-adv.html"><a href="cuda-adv.html#流"><i class="fa fa-check"></i><b>6.2</b> 流</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="cuda-adv.html"><a href="cuda-adv.html#举个例子"><i class="fa fa-check"></i><b>6.2.1</b> 举个例子</a></li>
+<li class="chapter" data-level="6.2.2" data-path="cuda-adv.html"><a href="cuda-adv.html#回调"><i class="fa fa-check"></i><b>6.2.2</b> 回调</a></li>
+<li class="chapter" data-level="6.2.3" data-path="cuda-adv.html"><a href="cuda-adv.html#什么时候要使用流"><i class="fa fa-check"></i><b>6.2.3</b> 什么时候要使用流</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="cuda-adv.html"><a href="cuda-adv.html#缓存和共享内存的分配"><i class="fa fa-check"></i><b>6.3</b> 缓存和共享内存的分配</a></li>
+<li class="chapter" data-level="6.4" data-path="cuda-adv.html"><a href="cuda-adv.html#cuadv_sum"><i class="fa fa-check"></i><b>6.4</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="nsight.html"><a href="nsight.html"><i class="fa fa-check"></i><b>7</b> 使用Nsight优化程序</a><ul>
+<li class="chapter" data-level="7.1" data-path="nsight.html"><a href="nsight.html#下载和安装"><i class="fa fa-check"></i><b>7.1</b> 下载和安装</a></li>
+<li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
+<li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
+<li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+</ul></li>
+<li class="appendix"><span><b>附录</b></span></li>
+<li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
+<li class="chapter" data-level="A.1" data-path="assemble.html"><a href="assemble.html#基本操作"><i class="fa fa-check"></i><b>A.1</b> 基本操作</a></li>
+<li class="chapter" data-level="A.2" data-path="assemble.html"><a href="assemble.html#神奇的装载有效地址"><i class="fa fa-check"></i><b>A.2</b> 神奇的“装载有效地址”</a></li>
+<li class="chapter" data-level="A.3" data-path="assemble.html"><a href="assemble.html#c语言中的内联汇编"><i class="fa fa-check"></i><b>A.3</b> c语言中的内联汇编</a></li>
+</ul></li>
+<li class="chapter" data-level="B" data-path="float.html"><a href="float.html"><i class="fa fa-check"></i><b>B</b> 浮点数的计算机表示</a><ul>
+<li class="chapter" data-level="B.1" data-path="float.html"><a href="float.html#单精度浮点数"><i class="fa fa-check"></i><b>B.1</b> 单精度浮点数</a><ul>
+<li class="chapter" data-level="B.1.1" data-path="float.html"><a href="float.html#规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.1</b> 规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.2" data-path="float.html"><a href="float.html#非规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.2</b> 非规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.3" data-path="float.html"><a href="float.html#特殊值"><i class="fa fa-check"></i><b>B.1.3</b> 特殊值</a></li>
+</ul></li>
+<li class="chapter" data-level="B.2" data-path="float.html"><a href="float.html#双精度浮点数和半精度浮点数"><i class="fa fa-check"></i><b>B.2</b> 双精度浮点数和半精度浮点数</a></li>
+</ul></li>
+<li class="chapter" data-level="C" data-path="cache.html"><a href="cache.html"><i class="fa fa-check"></i><b>C</b> 高速缓存</a><ul>
+<li class="chapter" data-level="C.1" data-path="cache.html"><a href="cache.html#局部性原理"><i class="fa fa-check"></i><b>C.1</b> 局部性原理</a></li>
+<li class="chapter" data-level="C.2" data-path="cache.html"><a href="cache.html#缓存的组态"><i class="fa fa-check"></i><b>C.2</b> 缓存的组态</a></li>
+<li class="chapter" data-level="C.3" data-path="cache.html"><a href="cache.html#缓存优化"><i class="fa fa-check"></i><b>C.3</b> 缓存优化</a></li>
+<li class="chapter" data-level="C.4" data-path="cache.html"><a href="cache.html#如何查看cpu的缓存组态"><i class="fa fa-check"></i><b>C.4</b> 如何查看cpu的缓存组态</a></li>
+<li class="chapter" data-level="C.5" data-path="cache.html"><a href="cache.html#感受一下缓存不命中"><i class="fa fa-check"></i><b>C.5</b> 感受一下缓存不命中</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>参考文献</a></li>
+<li class="divider"></li>
+<li><a href="https://bookdown.org" target="blank">本书由 bookdown 强力驱动</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">x40并行编程指南</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="cmt" class="section level1">
+<h1><span class="header-section-number">第 2 章</span> c语言多线程编程</h1>
+<p>这部分我也是现学现卖。C11标准引入了线程支持，但是直到glibc的2.28版本才实现了C11标准的线程。不幸服务器上的glibc版本是2.17。</p>
+<p>其实在linux下，c语言早已有线程库pthread了。据说glibc里的线程库就是直接把pthread封装了一下<br />
+(～￣▽￣)～</p>
+<p>其实pthread和thread我都不会用，为了拥抱新标准简单学习了一下C11的thread，这里就简单讲一下。</p>
+<div id="cmt_muladd" class="section level2">
+<h2><span class="header-section-number">2.1</span> 还是乘加运算</h2>
+<blockquote>
+<p><em>大切な人といつかまた巡り会えますように。——『Plastic Memories』</em></p>
+</blockquote>
+<p>这里是4个线程进行运算的c代码</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="cmt.html#cb8-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb8-2"><a href="cmt.html#cb8-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb8-3"><a href="cmt.html#cb8-3"></a><span class="pp">#include </span><span class="im">&lt;time.h&gt;</span></span>
+<span id="cb8-4"><a href="cmt.html#cb8-4"></a><span class="pp">#include </span><span class="im">&lt;threads.h&gt;</span></span>
+<span id="cb8-5"><a href="cmt.html#cb8-5"></a></span>
+<span id="cb8-6"><a href="cmt.html#cb8-6"></a><span class="kw">struct</span> Input{</span>
+<span id="cb8-7"><a href="cmt.html#cb8-7"></a>    <span class="dt">double</span>* a;</span>
+<span id="cb8-8"><a href="cmt.html#cb8-8"></a>    <span class="dt">double</span>* b;</span>
+<span id="cb8-9"><a href="cmt.html#cb8-9"></a>    <span class="dt">double</span>* c;</span>
+<span id="cb8-10"><a href="cmt.html#cb8-10"></a>    <span class="dt">double</span>* d;</span>
+<span id="cb8-11"><a href="cmt.html#cb8-11"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N;</span>
+<span id="cb8-12"><a href="cmt.html#cb8-12"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> R;</span>
+<span id="cb8-13"><a href="cmt.html#cb8-13"></a>};</span>
+<span id="cb8-14"><a href="cmt.html#cb8-14"></a></span>
+<span id="cb8-15"><a href="cmt.html#cb8-15"></a>__attribute__ ((noinline))</span>
+<span id="cb8-16"><a href="cmt.html#cb8-16"></a><span class="dt">int</span> muladd_th(<span class="dt">void</span>* input){</span>
+<span id="cb8-17"><a href="cmt.html#cb8-17"></a>    <span class="kw">struct</span> Input* in;</span>
+<span id="cb8-18"><a href="cmt.html#cb8-18"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i, j;</span>
+<span id="cb8-19"><a href="cmt.html#cb8-19"></a>    <span class="dt">double</span>* va;</span>
+<span id="cb8-20"><a href="cmt.html#cb8-20"></a>    <span class="dt">double</span>* vb;</span>
+<span id="cb8-21"><a href="cmt.html#cb8-21"></a>    <span class="dt">double</span>* vc;</span>
+<span id="cb8-22"><a href="cmt.html#cb8-22"></a>    <span class="dt">double</span>* vd;</span>
+<span id="cb8-23"><a href="cmt.html#cb8-23"></a>    in = (<span class="kw">struct</span> Input*)input;</span>
+<span id="cb8-24"><a href="cmt.html#cb8-24"></a>    va = in-&gt;a;</span>
+<span id="cb8-25"><a href="cmt.html#cb8-25"></a>    vb = in-&gt;b;</span>
+<span id="cb8-26"><a href="cmt.html#cb8-26"></a>    vc = in-&gt;c;</span>
+<span id="cb8-27"><a href="cmt.html#cb8-27"></a>    vd = in-&gt;d;</span>
+<span id="cb8-28"><a href="cmt.html#cb8-28"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; in-&gt;R; i++){</span>
+<span id="cb8-29"><a href="cmt.html#cb8-29"></a>        <span class="cf">for</span>(j = <span class="dv">0</span>; j &lt; in-&gt;N; j++){</span>
+<span id="cb8-30"><a href="cmt.html#cb8-30"></a>            vd[j] = va[j] * vb[j] + vc[j];</span>
+<span id="cb8-31"><a href="cmt.html#cb8-31"></a>        }</span>
+<span id="cb8-32"><a href="cmt.html#cb8-32"></a>    }</span>
+<span id="cb8-33"><a href="cmt.html#cb8-33"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb8-34"><a href="cmt.html#cb8-34"></a>}</span>
+<span id="cb8-35"><a href="cmt.html#cb8-35"></a></span>
+<span id="cb8-36"><a href="cmt.html#cb8-36"></a>__attribute__ ((noinline))</span>
+<span id="cb8-37"><a href="cmt.html#cb8-37"></a><span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c,</span>
+<span id="cb8-38"><a href="cmt.html#cb8-38"></a>            <span class="dt">double</span>* d, <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N,</span>
+<span id="cb8-39"><a href="cmt.html#cb8-39"></a>            <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> R){</span>
+<span id="cb8-40"><a href="cmt.html#cb8-40"></a>    thrd_t threads[<span class="dv">4</span>];</span>
+<span id="cb8-41"><a href="cmt.html#cb8-41"></a>    <span class="kw">struct</span> Input inputs[<span class="dv">4</span>];</span>
+<span id="cb8-42"><a href="cmt.html#cb8-42"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb8-43"><a href="cmt.html#cb8-43"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">4</span>; i++){</span>
+<span id="cb8-44"><a href="cmt.html#cb8-44"></a>        inputs[i].a = a + N/<span class="dv">4</span>*i;</span>
+<span id="cb8-45"><a href="cmt.html#cb8-45"></a>        inputs[i].b = b + N/<span class="dv">4</span>*i;</span>
+<span id="cb8-46"><a href="cmt.html#cb8-46"></a>        inputs[i].c = c + N/<span class="dv">4</span>*i;</span>
+<span id="cb8-47"><a href="cmt.html#cb8-47"></a>        inputs[i].d = d + N/<span class="dv">4</span>*i;</span>
+<span id="cb8-48"><a href="cmt.html#cb8-48"></a>        inputs[i].N = N/<span class="dv">4</span>;</span>
+<span id="cb8-49"><a href="cmt.html#cb8-49"></a>        inputs[i].R = R;</span>
+<span id="cb8-50"><a href="cmt.html#cb8-50"></a>        <span class="cf">if</span>(i == <span class="dv">3</span>){</span>
+<span id="cb8-51"><a href="cmt.html#cb8-51"></a>            inputs[i].N = N-N/<span class="dv">4</span>*<span class="dv">3</span>;</span>
+<span id="cb8-52"><a href="cmt.html#cb8-52"></a>        }</span>
+<span id="cb8-53"><a href="cmt.html#cb8-53"></a>        thrd_create(&amp;(threads[i]), muladd_th, &amp;(inputs[i]));</span>
+<span id="cb8-54"><a href="cmt.html#cb8-54"></a>    }</span>
+<span id="cb8-55"><a href="cmt.html#cb8-55"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">4</span>; i++){</span>
+<span id="cb8-56"><a href="cmt.html#cb8-56"></a>        thrd_join((threads[i]), NULL);</span>
+<span id="cb8-57"><a href="cmt.html#cb8-57"></a>    }</span>
+<span id="cb8-58"><a href="cmt.html#cb8-58"></a>    </span>
+<span id="cb8-59"><a href="cmt.html#cb8-59"></a>}</span>
+<span id="cb8-60"><a href="cmt.html#cb8-60"></a></span>
+<span id="cb8-61"><a href="cmt.html#cb8-61"></a><span class="dt">int</span> main(){</span>
+<span id="cb8-62"><a href="cmt.html#cb8-62"></a>    <span class="dt">double</span>* a = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb8-63"><a href="cmt.html#cb8-63"></a>    <span class="dt">double</span>* b = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb8-64"><a href="cmt.html#cb8-64"></a>    <span class="dt">double</span>* c = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb8-65"><a href="cmt.html#cb8-65"></a>    <span class="dt">double</span>* d = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb8-66"><a href="cmt.html#cb8-66"></a>    </span>
+<span id="cb8-67"><a href="cmt.html#cb8-67"></a>    <span class="co">//Prepare data</span></span>
+<span id="cb8-68"><a href="cmt.html#cb8-68"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb8-69"><a href="cmt.html#cb8-69"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb8-70"><a href="cmt.html#cb8-70"></a>        a[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb8-71"><a href="cmt.html#cb8-71"></a>        b[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb8-72"><a href="cmt.html#cb8-72"></a>        c[i] = ((<span class="dt">double</span>)i)/<span class="fl">10000.0</span>;</span>
+<span id="cb8-73"><a href="cmt.html#cb8-73"></a>    }</span>
+<span id="cb8-74"><a href="cmt.html#cb8-74"></a>    </span>
+<span id="cb8-75"><a href="cmt.html#cb8-75"></a>    <span class="kw">struct</span> timespec start, stop;</span>
+<span id="cb8-76"><a href="cmt.html#cb8-76"></a>    <span class="dt">double</span> elapsed;</span>
+<span id="cb8-77"><a href="cmt.html#cb8-77"></a>    clock_gettime(CLOCK_MONOTONIC, &amp;start);</span>
+<span id="cb8-78"><a href="cmt.html#cb8-78"></a></span>
+<span id="cb8-79"><a href="cmt.html#cb8-79"></a>    muladd(a, b, c, d, <span class="dv">8192</span>, <span class="dv">1000000</span>);</span>
+<span id="cb8-80"><a href="cmt.html#cb8-80"></a>    clock_gettime(CLOCK_MONOTONIC, &amp;stop);</span>
+<span id="cb8-81"><a href="cmt.html#cb8-81"></a>    elapsed = (<span class="dt">double</span>)(stop.tv_sec-start.tv_sec);</span>
+<span id="cb8-82"><a href="cmt.html#cb8-82"></a>    elapsed += (<span class="dt">double</span>)(stop.tv_nsec-start.tv_nsec)/ <span class="fl">1000000000.0</span>;</span>
+<span id="cb8-83"><a href="cmt.html#cb8-83"></a>    printf(<span class="st">&quot;Elapsed time = %8.6f s</span><span class="sc">\n</span><span class="st">&quot;</span>, elapsed);</span>
+<span id="cb8-84"><a href="cmt.html#cb8-84"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb8-85"><a href="cmt.html#cb8-85"></a>        <span class="cf">if</span>(i % <span class="dv">1001</span> == <span class="dv">0</span>){</span>
+<span id="cb8-86"><a href="cmt.html#cb8-86"></a>            printf(<span class="st">&quot;%5llu: %16.8f * %16.8f + %16.8f = %16.8f (%d)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb8-87"><a href="cmt.html#cb8-87"></a>                   i, a[i], b[i], c[i], d[i], d[i]==a[i]*b[i]+c[i]);</span>
+<span id="cb8-88"><a href="cmt.html#cb8-88"></a>        }</span>
+<span id="cb8-89"><a href="cmt.html#cb8-89"></a>    }</span>
+<span id="cb8-90"><a href="cmt.html#cb8-90"></a></span>
+<span id="cb8-91"><a href="cmt.html#cb8-91"></a>    free(a);</span>
+<span id="cb8-92"><a href="cmt.html#cb8-92"></a>    free(b);</span>
+<span id="cb8-93"><a href="cmt.html#cb8-93"></a>    free(c);</span>
+<span id="cb8-94"><a href="cmt.html#cb8-94"></a>    free(d);</span>
+<span id="cb8-95"><a href="cmt.html#cb8-95"></a>}</span></code></pre></div>
+<blockquote>
+<p>简单说一下。需要<code>#include &lt;threads.h&gt;</code>。这里把4096维数组拆成4份，分别由四个线程完成计算。1,000,000次的循环也放到线程里面做。此外，这里还更换了计时函数。由于之前使用的计时函数在多线程的情况下会把每个线程的时间加起来，计算的时间就不对了。如果亲自试一试的话，会发现感受到的时间比输出的时间要短。</p>
+</blockquote>
+<blockquote>
+<p>此外，上述程序需要glibc&gt;=2.28. 要再x40上运行的话可以自己编译一个glibc。我尝试了编译glibc 2.30。glibc 2.30需要的gmake版本比x40带有的要高一些，所以又得自己编译一个gmake。简单说一下流程：</p>
+<blockquote>
+<p>下载最新的gnu make的源代码，再里面直接</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="cmt.html#cb9-1"></a>  $ <span class="ex">./configure</span></span>
+<span id="cb9-2"><a href="cmt.html#cb9-2"></a>  $ <span class="fu">make</span></span></code></pre></div>
+<p>得到一个<code>make</code>的可执行文件。<br />
+将这个<code>make</code>重命名为<code>gmake</code>并拷贝到一个地方，比如<code>~/bin/</code><br />
+再把这个地方加入到$PATH环境变量里<code>export PATH=~/bin/:$PATH</code>.<br />
+然后下载glibc 2.30的源代码，解压。在其目录里面创建一个<code>build</code>文件夹并进入。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="cmt.html#cb10-1"></a>  $ <span class="ex">../configure</span> --prefix=~/glibc230/</span>
+<span id="cb10-2"><a href="cmt.html#cb10-2"></a>  $ <span class="fu">make</span> -j10 all</span>
+<span id="cb10-3"><a href="cmt.html#cb10-3"></a>  $ <span class="fu">make</span> install</span></code></pre></div>
+<p>注意一定要指定<code>--prefix</code>,否则<code>make install</code>会尝试将glibc安装到系统目录。<br />
+这里假设你将glibc安装到<code>~/glibc230</code>.<br />
+安装好以后就可以编译muladd_mt.c了</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="cmt.html#cb11-1"></a><span class="fu">gcc</span> -L~/glibc230/lib -I~/glibc230/include \</span>
+<span id="cb11-2"><a href="cmt.html#cb11-2"></a>-Wl,--rpath=~/glibc230/lib \</span>
+<span id="cb11-3"><a href="cmt.html#cb11-3"></a>-Wl,--dynamic-linker=~/glibc230/lib/ld-linux-x86-64.so.2 \</span>
+<span id="cb11-4"><a href="cmt.html#cb11-4"></a>-std=c11 \</span>
+<span id="cb11-5"><a href="cmt.html#cb11-5"></a>-o muladd_mt muladd_mt.c -pthread</span></code></pre></div>
+</blockquote>
+</blockquote>
+<p>结果，用时6秒左右。</p>
+<p><strong>注意！后面的<code>thrd_join((threads[i]), NULL);</code>非常重要，一定不可省略。</strong>这句话保证了调用该函数的线程在这里等，直到threads[i]的线程结束。第二个参数如果不是NULL的话，threads[i]线程会把返回值写到第二参数指示的地址。如果不写<code>thrd_join</code>会导致主线程提前退出，于是threads[i]线程的运行结果就拿不到了。这是不好的。</p>
+<p><code>thrd_create</code>函数的三个参数：<br />
+第一个是一个指向<code>thrd_t</code>结构的指针，后面<code>thrd_join</code>等操作都需要这个<code>thrd_t</code>结构，相当于线程的编号。<br />
+第二个参数是一个函数指针(直接用函数名即可)。这个函数必须是接受一个<code>void*</code>参数并返回一个<code>int</code>的函数。<code>void*</code>参数用来向线程传递数据。<br />
+第三个参数就是要向上述函数传入的参数。由于参数需要是一个指针，因此在上面的程序里面设计了一个结构<code>Input</code>，里面包含了计算所需的信息。<br />
+创建完后线程就运行起来了。这时该干啥干啥，然后用<code>thrd_join</code>等结果就行了。</p>
+</div>
+<div id="cmt_sum" class="section level2">
+<h2><span class="header-section-number">2.2</span> 本章小结</h2>
+<p>又是这个环节！线程比SIMD灵活多了，每个线程可以做不同的事情（可以根据传入的参数判断一下）。线程们在多核心CPU上可以同时执行，可以看到同样的内存空间。用个循环把它们安排明白就可以开始等了😃</p>
+<p>相信你的脑中又一次充满了问号，我再尝试自问自答一下。</p>
+<hr />
+<p><strong>问：这里也是muladd函数，为什么不直接把它执行1,000,000遍？</strong><br />
+答：这是因为线程的创建和销毁是有代价的。频繁创建和销毁线程会占用过多的资源。最好是创建好线程后让它执行一整套任务。此外，有一种“线程池”的技术，可以先创建一个包含一些线程的池，然后向线程池发送任务。接到任务后线程池会自动唤醒一个线程取执行任务，这样就避免了频繁创建/销毁线程所需的开销。然而由于我学艺不精，并不知道具体如何实现一个线程池（但是想必存在开源的已经写好的线程池库）。当然，也可以在主线程中准备数据，每准备好一部分就开启一个线程进行处理，最后再等待所有线程结束后收集好计算结果。但是要注意，最大线程数量是有限制的，请合理划分数据。</p>
+<hr />
+<p><strong>问：你这多线程编程自己都不会，还出来写指南？</strong><br />
+答：正常小朋友一般问不出来这种问题。</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="csimd.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="fma.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yihui/bookdown-chinese/edit/master/02-c_para.Rmd",
+"text": "编辑"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["bookdown.pdf", "bookdown.epub"],
+"toc": {
+"collapse": "none"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

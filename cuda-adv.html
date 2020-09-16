@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>第 6 章 CUDA高级优化技巧 | x40并行编程指南</title>
+  <meta name="description" content="在x40服务器上并行运算" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="第 6 章 CUDA高级优化技巧 | x40并行编程指南" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="在x40服务器上并行运算" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="第 6 章 CUDA高级优化技巧 | x40并行编程指南" />
+  
+  <meta name="twitter:description" content="在x40服务器上并行运算" />
+  
+
+<meta name="author" content="cucumber" />
+
+
+<meta name="date" content="2020-09-16" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="cuda.html"/>
+<link rel="next" href="nsight.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css\style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">x40并行编程指南</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>前言</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#致谢"><i class="fa fa-check"></i>致谢</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="author.html"><a href="author.html"><i class="fa fa-check"></i>作者简介</a></li>
+<li class="chapter" data-level="" data-path="x40.html"><a href="x40.html"><i class="fa fa-check"></i>x40服务器</a><ul>
+<li class="chapter" data-level="0.1" data-path="x40.html"><a href="x40.html#基本硬件信息"><i class="fa fa-check"></i><b>0.1</b> 基本硬件信息</a></li>
+</ul></li>
+<li class="part"><span><b>I c语言并行编程</b></span></li>
+<li class="chapter" data-level="1" data-path="csimd.html"><a href="csimd.html"><i class="fa fa-check"></i><b>1</b> SIMD 和 SSE/AVX</a><ul>
+<li class="chapter" data-level="1.1" data-path="csimd.html"><a href="csimd.html#muladd_base"><i class="fa fa-check"></i><b>1.1</b> 一个简单的程序</a></li>
+<li class="chapter" data-level="1.2" data-path="csimd.html"><a href="csimd.html#csimd_first"><i class="fa fa-check"></i><b>1.2</b> 我的第一个SIMD程序！</a></li>
+<li class="chapter" data-level="1.3" data-path="csimd.html"><a href="csimd.html#csimd_reg"><i class="fa fa-check"></i><b>1.3</b> 搞个寄存器变量</a></li>
+<li class="chapter" data-level="1.4" data-path="csimd.html"><a href="csimd.html#csimd_asm"><i class="fa fa-check"></i><b>1.4</b> 我比编译器聪明系列</a></li>
+<li class="chapter" data-level="1.5" data-path="csimd.html"><a href="csimd.html#csimd_gccO3"><i class="fa fa-check"></i><b>1.5</b> 编译器比我聪明系列</a></li>
+<li class="chapter" data-level="1.6" data-path="csimd.html"><a href="csimd.html#csimd_sum"><i class="fa fa-check"></i><b>1.6</b> 本章小结</a></li>
+<li class="chapter" data-level="1.7" data-path="csimd.html"><a href="csimd.html#csimd_add"><i class="fa fa-check"></i><b>1.7</b> 补充内容</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="cmt.html"><a href="cmt.html"><i class="fa fa-check"></i><b>2</b> c语言多线程编程</a><ul>
+<li class="chapter" data-level="2.1" data-path="cmt.html"><a href="cmt.html#cmt_muladd"><i class="fa fa-check"></i><b>2.1</b> 还是乘加运算</a></li>
+<li class="chapter" data-level="2.2" data-path="cmt.html"><a href="cmt.html#cmt_sum"><i class="fa fa-check"></i><b>2.2</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="fma.html"><a href="fma.html"><i class="fa fa-check"></i><b>3</b> 第一部分结束语</a></li>
+<li class="part"><span><b>II GPGPU</b></span></li>
+<li class="chapter" data-level="4" data-path="gpuintro.html"><a href="gpuintro.html"><i class="fa fa-check"></i><b>4</b> GPU简介</a><ul>
+<li class="chapter" data-level="4.1" data-path="gpuintro.html"><a href="gpuintro.html#gpu_about"><i class="fa fa-check"></i><b>4.1</b> 图形处理是怎么回事？</a></li>
+<li class="chapter" data-level="4.2" data-path="gpuintro.html"><a href="gpuintro.html#gpu_gpgpu"><i class="fa fa-check"></i><b>4.2</b> 那GPGPU是啥？</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="cuda.html"><a href="cuda.html"><i class="fa fa-check"></i><b>5</b> CUDA</a><ul>
+<li class="chapter" data-level="5.1" data-path="cuda.html"><a href="cuda.html#before_start"><i class="fa fa-check"></i><b>5.1</b> 开始之前</a></li>
+<li class="chapter" data-level="5.2" data-path="cuda.html"><a href="cuda.html#cuda_first"><i class="fa fa-check"></i><b>5.2</b> 我的第一个cuda程序</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="cuda.html"><a href="cuda.html#include-cuda_runtime.h"><i class="fa fa-check"></i><b>5.2.1</b> #include &lt;cuda_runtime.h&gt;</a></li>
+<li class="chapter" data-level="5.2.2" data-path="cuda.html"><a href="cuda.html#global__-void-muladd"><i class="fa fa-check"></i><b>5.2.2</b> <code>__global__ void muladd</code></a></li>
+<li class="chapter" data-level="5.2.3" data-path="cuda.html"><a href="cuda.html#blockidxblockdim和threadidx"><i class="fa fa-check"></i><b>5.2.3</b> <code>blockIdx</code>,<code>blockDim</code>和<code>threadIdx</code></a></li>
+<li class="chapter" data-level="5.2.4" data-path="cuda.html"><a href="cuda.html#cudamalloc"><i class="fa fa-check"></i><b>5.2.4</b> <code>cudaMalloc</code></a></li>
+<li class="chapter" data-level="5.2.5" data-path="cuda.html"><a href="cuda.html#cudamemcpy"><i class="fa fa-check"></i><b>5.2.5</b> <code>cudaMemcpy</code></a></li>
+<li class="chapter" data-level="5.2.6" data-path="cuda.html"><a href="cuda.html#section"><i class="fa fa-check"></i><b>5.2.6</b> <code>&lt;&lt;&lt;32, 256&gt;&gt;&gt;</code></a></li>
+<li class="chapter" data-level="5.2.7" data-path="cuda.html"><a href="cuda.html#cudafree"><i class="fa fa-check"></i><b>5.2.7</b> <code>cudaFree</code></a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="cuda.html"><a href="cuda.html#cuda新增类型"><i class="fa fa-check"></i><b>5.3</b> CUDA新增类型</a></li>
+<li class="chapter" data-level="5.4" data-path="cuda.html"><a href="cuda.html#cuda_device"><i class="fa fa-check"></i><b>5.4</b> 使用<code>__device__</code>函数</a></li>
+<li class="chapter" data-level="5.5" data-path="cuda.html"><a href="cuda.html#cuda_shared"><i class="fa fa-check"></i><b>5.5</b> 生成动态链接库</a><ul>
+<li class="chapter" data-level="5.5.1" data-path="cuda.html"><a href="cuda.html#用c做一个动态链接库"><i class="fa fa-check"></i><b>5.5.1</b> 用c++做一个动态链接库</a></li>
+<li class="chapter" data-level="5.5.2" data-path="cuda.html"><a href="cuda.html#生成cuda的动态链接库"><i class="fa fa-check"></i><b>5.5.2</b> 生成cuda的动态链接库</a></li>
+<li class="chapter" data-level="5.5.3" data-path="cuda.html"><a href="cuda.html#使用动态链接库"><i class="fa fa-check"></i><b>5.5.3</b> 使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.4" data-path="cuda.html"><a href="cuda.html#在root中交互地使用动态链接库"><i class="fa fa-check"></i><b>5.5.4</b> 在root中交互地使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.5" data-path="cuda.html"><a href="cuda.html#在root中交互地使用cuda的完整例子"><i class="fa fa-check"></i><b>5.5.5</b> 在root中交互地使用cuda的完整例子</a></li>
+<li class="chapter" data-level="5.5.6" data-path="cuda.html"><a href="cuda.html#不支持c的情况"><i class="fa fa-check"></i><b>5.5.6</b> 不支持c++的情况</a></li>
+</ul></li>
+<li class="chapter" data-level="5.6" data-path="cuda.html"><a href="cuda.html#cudabase_sum"><i class="fa fa-check"></i><b>5.6</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="cuda-adv.html"><a href="cuda-adv.html"><i class="fa fa-check"></i><b>6</b> CUDA高级优化技巧</a><ul>
+<li class="chapter" data-level="6.1" data-path="cuda-adv.html"><a href="cuda-adv.html#纹理和纹理内存"><i class="fa fa-check"></i><b>6.1</b> 纹理和纹理内存</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="cuda-adv.html"><a href="cuda-adv.html#什么是纹理"><i class="fa fa-check"></i><b>6.1.1</b> 什么是纹理？</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cuda-adv.html"><a href="cuda-adv.html#cuda纹理的寻址模式和线性插值"><i class="fa fa-check"></i><b>6.1.2</b> CUDA纹理的寻址模式和线性插值</a></li>
+<li class="chapter" data-level="6.1.3" data-path="cuda-adv.html"><a href="cuda-adv.html#举一个例子"><i class="fa fa-check"></i><b>6.1.3</b> 举一个例子</a></li>
+<li class="chapter" data-level="6.1.4" data-path="cuda-adv.html"><a href="cuda-adv.html#如何实现双精度纹理"><i class="fa fa-check"></i><b>6.1.4</b> 如何实现双精度纹理</a></li>
+<li class="chapter" data-level="6.1.5" data-path="cuda-adv.html"><a href="cuda-adv.html#所以为什么要用纹理"><i class="fa fa-check"></i><b>6.1.5</b> 所以为什么要用纹理？</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cuda-adv.html"><a href="cuda-adv.html#流"><i class="fa fa-check"></i><b>6.2</b> 流</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="cuda-adv.html"><a href="cuda-adv.html#举个例子"><i class="fa fa-check"></i><b>6.2.1</b> 举个例子</a></li>
+<li class="chapter" data-level="6.2.2" data-path="cuda-adv.html"><a href="cuda-adv.html#回调"><i class="fa fa-check"></i><b>6.2.2</b> 回调</a></li>
+<li class="chapter" data-level="6.2.3" data-path="cuda-adv.html"><a href="cuda-adv.html#什么时候要使用流"><i class="fa fa-check"></i><b>6.2.3</b> 什么时候要使用流</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="cuda-adv.html"><a href="cuda-adv.html#缓存和共享内存的分配"><i class="fa fa-check"></i><b>6.3</b> 缓存和共享内存的分配</a></li>
+<li class="chapter" data-level="6.4" data-path="cuda-adv.html"><a href="cuda-adv.html#cuadv_sum"><i class="fa fa-check"></i><b>6.4</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="nsight.html"><a href="nsight.html"><i class="fa fa-check"></i><b>7</b> 使用Nsight优化程序</a><ul>
+<li class="chapter" data-level="7.1" data-path="nsight.html"><a href="nsight.html#下载和安装"><i class="fa fa-check"></i><b>7.1</b> 下载和安装</a></li>
+<li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
+<li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
+<li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+</ul></li>
+<li class="appendix"><span><b>附录</b></span></li>
+<li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
+<li class="chapter" data-level="A.1" data-path="assemble.html"><a href="assemble.html#基本操作"><i class="fa fa-check"></i><b>A.1</b> 基本操作</a></li>
+<li class="chapter" data-level="A.2" data-path="assemble.html"><a href="assemble.html#神奇的装载有效地址"><i class="fa fa-check"></i><b>A.2</b> 神奇的“装载有效地址”</a></li>
+<li class="chapter" data-level="A.3" data-path="assemble.html"><a href="assemble.html#c语言中的内联汇编"><i class="fa fa-check"></i><b>A.3</b> c语言中的内联汇编</a></li>
+</ul></li>
+<li class="chapter" data-level="B" data-path="float.html"><a href="float.html"><i class="fa fa-check"></i><b>B</b> 浮点数的计算机表示</a><ul>
+<li class="chapter" data-level="B.1" data-path="float.html"><a href="float.html#单精度浮点数"><i class="fa fa-check"></i><b>B.1</b> 单精度浮点数</a><ul>
+<li class="chapter" data-level="B.1.1" data-path="float.html"><a href="float.html#规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.1</b> 规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.2" data-path="float.html"><a href="float.html#非规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.2</b> 非规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.3" data-path="float.html"><a href="float.html#特殊值"><i class="fa fa-check"></i><b>B.1.3</b> 特殊值</a></li>
+</ul></li>
+<li class="chapter" data-level="B.2" data-path="float.html"><a href="float.html#双精度浮点数和半精度浮点数"><i class="fa fa-check"></i><b>B.2</b> 双精度浮点数和半精度浮点数</a></li>
+</ul></li>
+<li class="chapter" data-level="C" data-path="cache.html"><a href="cache.html"><i class="fa fa-check"></i><b>C</b> 高速缓存</a><ul>
+<li class="chapter" data-level="C.1" data-path="cache.html"><a href="cache.html#局部性原理"><i class="fa fa-check"></i><b>C.1</b> 局部性原理</a></li>
+<li class="chapter" data-level="C.2" data-path="cache.html"><a href="cache.html#缓存的组态"><i class="fa fa-check"></i><b>C.2</b> 缓存的组态</a></li>
+<li class="chapter" data-level="C.3" data-path="cache.html"><a href="cache.html#缓存优化"><i class="fa fa-check"></i><b>C.3</b> 缓存优化</a></li>
+<li class="chapter" data-level="C.4" data-path="cache.html"><a href="cache.html#如何查看cpu的缓存组态"><i class="fa fa-check"></i><b>C.4</b> 如何查看cpu的缓存组态</a></li>
+<li class="chapter" data-level="C.5" data-path="cache.html"><a href="cache.html#感受一下缓存不命中"><i class="fa fa-check"></i><b>C.5</b> 感受一下缓存不命中</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>参考文献</a></li>
+<li class="divider"></li>
+<li><a href="https://bookdown.org" target="blank">本书由 bookdown 强力驱动</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">x40并行编程指南</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="cuda_adv" class="section level1">
+<h1><span class="header-section-number">第 6 章</span> CUDA高级优化技巧</h1>
+<p>这一章虽然称为高级优化技巧，其实不算什么高级内容，只是介绍一些有用的特性。</p>
+<div id="纹理和纹理内存" class="section level2">
+<h2><span class="header-section-number">6.1</span> 纹理和纹理内存</h2>
+<blockquote>
+<p><em>余忆童稚时，能张目对日，明察秋毫。见藐小微物，必细察其纹理，故时有物外之趣。——《浮生六记》</em></p>
+</blockquote>
+<div id="什么是纹理" class="section level3">
+<h3><span class="header-section-number">6.1.1</span> 什么是纹理？</h3>
+<p>在图形学中，纹理本来是一幅图像，用来被“贴”在要显示的位置。由于观察角度不同，显示的点到纹理上的点会有不同的映射关系。</p>
+<p>从纹理中取得信息和从数组中取得值是类似的，但是从纹理中取值被称作“拾取”(fetch)，取到的内容称作“texel”。</p>
+<p>但是和从数组中取值不同，拾取纹理可以使用非整数的下标，甚至可以自动进行插值。</p>
+<p>CUDA支持整数纹理和单精度浮点数纹理以及相应的2维或4维矢量纹理。（这里说的是纹理里面的值，相当于数组的类型是整数/单精度浮点数或者它们对应的矢量类型）。</p>
+</div>
+<div id="cuda纹理的寻址模式和线性插值" class="section level3">
+<h3><span class="header-section-number">6.1.2</span> CUDA纹理的寻址模式和线性插值</h3>
+<p>CUDA的纹理支持“归一化”，即将坐标和/或值线性映射到零到一的区间里。</p>
+<p>CUDA纹理支持整数拾取和浮点数拾取。同时对超过边界的拾取可设定为“环绕”(wrap)，“钳制”(clamp)，“镜像”（mirror）或者“边界”（border）。几种边界模式的不同如下（假设是1维的情况，纹理里的内容是(1, 2, 3, 4)，只列出从-4到7的“整数点”的值）</p>
+<ul>
+<li>环绕：(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4)<br />
+</li>
+<li>钳制：(1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4)<br />
+</li>
+<li>镜像：(4, 3, 2, 1, 1, 2, 3, 4, 4, 3, 2, 1)<br />
+</li>
+<li>边界：(0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0)</li>
+</ul>
+<blockquote>
+<p>这里“整数点”加引号是由于纹素的坐标其实是有0.5的偏移的。用数组来举例：<br />
+如果有数组a，a[0]=0, a[1]=1, a[2]=2, a[3]=3<br />
+那么，同样的纹理t，t[0.5]=0, t[1.5]=1, t[2.5]=2, t[3,5]=3<br />
+可以理解为类似把一个像素变成一个单位正方形，正方形的中心坐标和编号比起来是有0.5的偏移的。</p>
+</blockquote>
+<p>注意，环绕和镜像模式只能在坐标“归一化”的的纹理中使用。</p>
+<p>CUDA纹理支持两种过滤模式，“最近点”和“线性插值”。顾名思义，最近点取坐标最近的格点的值，而线性插值则是用相邻的格点的值进行线性插值来作为拾取到的值。这里，“最近点”用的是左闭右开区间，即t[0]=t[0.5]=t[0.99],t[1]=t[1.5]等等。</p>
+<p><strong>注意！线性插值的精度是有限的。内部是用一个8bit的数做插值(我理解是把一个格子分成256份的意思)。所以如果对精度要求比较高，建议用最近点模式然后手动插值。如果对精度要求不是特别高的话，用线性插值模式可以获得更高的性能。</strong></p>
+<p><strong>注意！纹理拾取函数接受的参数是单精度浮点数。如果坐标是双精度浮点数的话会自动转换成单精度。但是在最近点模式中，双精度转单精度并不是截断的，而是舍入到最近的单精度浮点，这意味着有可能因为进位而导致拾取到不同的值，这在手动插值的情况下会引发问题。建议手动转换至单精度或向下取整后传入参数。（建议使用<code>__double2float_rd(double)</code>手动向转换精度。这是由于向下取整得到的仍然是double，在传参时还是会经历一次精度转换，可能会有一定的性能损失。）</strong></p>
+</div>
+<div id="举一个例子" class="section level3">
+<h3><span class="header-section-number">6.1.3</span> 举一个例子</h3>
+<p>其实是两个例子🌰，分别是一维（和二维差不多）和三维的单精度浮点数纹理的使用。其余情况大同小异。</p>
+<div id="一维纹理的情况" class="section level4">
+<h4><span class="header-section-number">6.1.3.1</span> 一维纹理的情况</h4>
+<div class="sourceCode" id="cb30"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb30-1"><a href="cuda-adv.html#cb30-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb30-2"><a href="cuda-adv.html#cb30-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb30-3"><a href="cuda-adv.html#cb30-3"></a><span class="pp">#include </span><span class="im">&lt;cuda_runtime.h&gt;</span></span>
+<span id="cb30-4"><a href="cuda-adv.html#cb30-4"></a></span>
+<span id="cb30-5"><a href="cuda-adv.html#cb30-5"></a>__global__ <span class="dt">void</span> FetchFrom1DTexture(cudaTextureObject_t tex,</span>
+<span id="cb30-6"><a href="cuda-adv.html#cb30-6"></a>                                   <span class="dt">float</span>* position,</span>
+<span id="cb30-7"><a href="cuda-adv.html#cb30-7"></a>                                   <span class="dt">float</span>* result,</span>
+<span id="cb30-8"><a href="cuda-adv.html#cb30-8"></a>                                   <span class="dt">unsigned</span> <span class="dt">int</span> N){</span>
+<span id="cb30-9"><a href="cuda-adv.html#cb30-9"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> id = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span id="cb30-10"><a href="cuda-adv.html#cb30-10"></a>    <span class="cf">if</span>(id &lt; N){</span>
+<span id="cb30-11"><a href="cuda-adv.html#cb30-11"></a>        <span class="co">//拾取</span></span>
+<span id="cb30-12"><a href="cuda-adv.html#cb30-12"></a>        <span class="co">//&lt;float&gt;是c++模板</span></span>
+<span id="cb30-13"><a href="cuda-adv.html#cb30-13"></a>        <span class="co">//这里不详细解释模板了，总之在尖括号里填写纹理的类型就对了</span></span>
+<span id="cb30-14"><a href="cuda-adv.html#cb30-14"></a>        <span class="co">//第一个参数是一个texture object (cudaTextureObject_t)</span></span>
+<span id="cb30-15"><a href="cuda-adv.html#cb30-15"></a>        <span class="co">//第二个参数是要拾取的位置。</span></span>
+<span id="cb30-16"><a href="cuda-adv.html#cb30-16"></a>        result[id] = tex1D&lt;<span class="dt">float</span>&gt;(tex, position[id]);</span>
+<span id="cb30-17"><a href="cuda-adv.html#cb30-17"></a>    }</span>
+<span id="cb30-18"><a href="cuda-adv.html#cb30-18"></a>}</span>
+<span id="cb30-19"><a href="cuda-adv.html#cb30-19"></a></span>
+<span id="cb30-20"><a href="cuda-adv.html#cb30-20"></a><span class="dt">int</span> main(){</span>
+<span id="cb30-21"><a href="cuda-adv.html#cb30-21"></a>    <span class="co">//我们要使用的纹理的原始值</span></span>
+<span id="cb30-22"><a href="cuda-adv.html#cb30-22"></a>    <span class="dt">float</span>* resource = (<span class="dt">float</span>*)(malloc(<span class="dv">4</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>)));</span>
+<span id="cb30-23"><a href="cuda-adv.html#cb30-23"></a>    resource[<span class="dv">0</span>] = <span class="fl">1.0</span>;</span>
+<span id="cb30-24"><a href="cuda-adv.html#cb30-24"></a>    resource[<span class="dv">1</span>] = <span class="fl">2.0</span>;</span>
+<span id="cb30-25"><a href="cuda-adv.html#cb30-25"></a>    resource[<span class="dv">2</span>] = <span class="fl">3.0</span>;</span>
+<span id="cb30-26"><a href="cuda-adv.html#cb30-26"></a>    resource[<span class="dv">3</span>] = <span class="fl">4.0</span>;</span>
+<span id="cb30-27"><a href="cuda-adv.html#cb30-27"></a>    </span>
+<span id="cb30-28"><a href="cuda-adv.html#cb30-28"></a>    <span class="co">//创建一个CUDA Array</span></span>
+<span id="cb30-29"><a href="cuda-adv.html#cb30-29"></a>    </span>
+<span id="cb30-30"><a href="cuda-adv.html#cb30-30"></a>    <span class="co">//cudaChannelFormatDesc: </span></span>
+<span id="cb30-31"><a href="cuda-adv.html#cb30-31"></a>    <span class="co">//  描述Array里每个元素的样子。这里每个元素是float。</span></span>
+<span id="cb30-32"><a href="cuda-adv.html#cb30-32"></a>    cudaChannelFormatDesc floatChannelDesc</span>
+<span id="cb30-33"><a href="cuda-adv.html#cb30-33"></a>                      = cudaCreateChannelDesc&lt;<span class="dt">float</span>&gt;();</span>
+<span id="cb30-34"><a href="cuda-adv.html#cb30-34"></a>    <span class="co">//声明CUDA Array</span></span>
+<span id="cb30-35"><a href="cuda-adv.html#cb30-35"></a>    cudaArray_t cuArray;</span>
+<span id="cb30-36"><a href="cuda-adv.html#cb30-36"></a>    </span>
+<span id="cb30-37"><a href="cuda-adv.html#cb30-37"></a>    <span class="co">//为cuarray分配空间。第三个参数是array在第一个维度上的长度。</span></span>
+<span id="cb30-38"><a href="cuda-adv.html#cb30-38"></a>    <span class="co">//这里长度单位是“个”，</span></span>
+<span id="cb30-39"><a href="cuda-adv.html#cb30-39"></a>    <span class="co">//因为在floatChannelDesc里已经描述了每个元素的大小了。</span></span>
+<span id="cb30-40"><a href="cuda-adv.html#cb30-40"></a>    <span class="co">//cudaMallocArray可以分配一维或二维的array</span></span>
+<span id="cb30-41"><a href="cuda-adv.html#cb30-41"></a>    <span class="co">//第四个参数用于指定第二个维度的长度（单位是多少行(háng)），默认为0</span></span>
+<span id="cb30-42"><a href="cuda-adv.html#cb30-42"></a>    cudaMallocArray(&amp;cuArray, &amp;floatChannelDesc, <span class="dv">4</span>);</span>
+<span id="cb30-43"><a href="cuda-adv.html#cb30-43"></a>    </span>
+<span id="cb30-44"><a href="cuda-adv.html#cb30-44"></a>    <span class="co">//向CUDA Array中拷贝数据。</span></span>
+<span id="cb30-45"><a href="cuda-adv.html#cb30-45"></a>    <span class="co">//cudaMemcpy2DToArray用于向一维和二维Array中拷贝数据。</span></span>
+<span id="cb30-46"><a href="cuda-adv.html#cb30-46"></a>    <span class="co">//一维Array就是第二个维度长度为0的二维Array</span></span>
+<span id="cb30-47"><a href="cuda-adv.html#cb30-47"></a>    <span class="co">//第一个参数是目标CUDA Array</span></span>
+<span id="cb30-48"><a href="cuda-adv.html#cb30-48"></a>    <span class="co">//第二个参数是目标的x位置</span></span>
+<span id="cb30-49"><a href="cuda-adv.html#cb30-49"></a>    <span class="co">//第三个参数是目标的y位置</span></span>
+<span id="cb30-50"><a href="cuda-adv.html#cb30-50"></a>    <span class="co">//第二个参数和第三个参数的意义在于可以只更新Array的一部分</span></span>
+<span id="cb30-51"><a href="cuda-adv.html#cb30-51"></a>    <span class="co">//第四个参数是被拷贝的数据的指针</span></span>
+<span id="cb30-52"><a href="cuda-adv.html#cb30-52"></a>    <span class="co">//第五个参数是描述被拷贝的内容按照每一行多少byte来排列</span></span>
+<span id="cb30-53"><a href="cuda-adv.html#cb30-53"></a>    <span class="co">//第六个参数是目标位置每一行拷贝多少byte</span></span>
+<span id="cb30-54"><a href="cuda-adv.html#cb30-54"></a>    <span class="co">//第七个参数是一共拷贝多少行</span></span>
+<span id="cb30-55"><a href="cuda-adv.html#cb30-55"></a>    <span class="co">//第八个参数是拷贝方向，这里是从主机内存到显卡内存。原因前面讲过。</span></span>
+<span id="cb30-56"><a href="cuda-adv.html#cb30-56"></a>    <span class="co">//可以通过后文的图片详细了解这个函数的工作方式。</span></span>
+<span id="cb30-57"><a href="cuda-adv.html#cb30-57"></a>    cudaMemcpy2DToArray(cuArray, <span class="dv">0</span>, <span class="dv">0</span>,  resource, <span class="dv">4</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>),</span>
+<span id="cb30-58"><a href="cuda-adv.html#cb30-58"></a>                        <span class="dv">4</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>), <span class="dv">1</span>, cudaMemcpyHostToDevice);</span>
+<span id="cb30-59"><a href="cuda-adv.html#cb30-59"></a>    <span class="co">//其实拷贝完以后主机内存里的resource已经没用了，可以现在就free掉。</span></span>
+<span id="cb30-60"><a href="cuda-adv.html#cb30-60"></a>    </span>
+<span id="cb30-61"><a href="cuda-adv.html#cb30-61"></a>    </span>
+<span id="cb30-62"><a href="cuda-adv.html#cb30-62"></a>    <span class="co">//描述要成为纹理的东西是个啥</span></span>
+<span id="cb30-63"><a href="cuda-adv.html#cb30-63"></a>    <span class="co">//resType设置为cudaResourceTypeArray，表明要从一个Array来构建纹理</span></span>
+<span id="cb30-64"><a href="cuda-adv.html#cb30-64"></a>    <span class="co">//res.array.array设置成我们刚刚准备好的Array</span></span>
+<span id="cb30-65"><a href="cuda-adv.html#cb30-65"></a>    <span class="kw">struct</span> cudaResourceDesc resDesc;</span>
+<span id="cb30-66"><a href="cuda-adv.html#cb30-66"></a>    memset(&amp;resDesc, <span class="dv">0</span>, <span class="kw">sizeof</span>(resDesc));</span>
+<span id="cb30-67"><a href="cuda-adv.html#cb30-67"></a>    resDesc.resType = cudaResourceTypeArray;</span>
+<span id="cb30-68"><a href="cuda-adv.html#cb30-68"></a>    resDesc.res.array.array = cuArray;</span>
+<span id="cb30-69"><a href="cuda-adv.html#cb30-69"></a>    </span>
+<span id="cb30-70"><a href="cuda-adv.html#cb30-70"></a>    <span class="co">//描述我们要的纹理是个啥样子</span></span>
+<span id="cb30-71"><a href="cuda-adv.html#cb30-71"></a>    <span class="kw">struct</span> cudaTextureDesc texDesc;</span>
+<span id="cb30-72"><a href="cuda-adv.html#cb30-72"></a>    memset(&amp;texDesc, <span class="dv">0</span>, <span class="kw">sizeof</span>(texDesc));</span>
+<span id="cb30-73"><a href="cuda-adv.html#cb30-73"></a>    <span class="co">//addressMode可取的值有：</span></span>
+<span id="cb30-74"><a href="cuda-adv.html#cb30-74"></a>    <span class="co">//  cudaAddressModeWrap</span></span>
+<span id="cb30-75"><a href="cuda-adv.html#cb30-75"></a>    <span class="co">//  cudaAddressModeClamp</span></span>
+<span id="cb30-76"><a href="cuda-adv.html#cb30-76"></a>    <span class="co">//  cudaAddressModeMirror</span></span>
+<span id="cb30-77"><a href="cuda-adv.html#cb30-77"></a>    <span class="co">//  cudaAddressModeBorder</span></span>
+<span id="cb30-78"><a href="cuda-adv.html#cb30-78"></a>    <span class="co">//详情见上文描述</span></span>
+<span id="cb30-79"><a href="cuda-adv.html#cb30-79"></a>    <span class="co">//addressMode是长度为3的数组，分别对应三个维度。</span></span>
+<span id="cb30-80"><a href="cuda-adv.html#cb30-80"></a>    <span class="co">//这里是一维所以只用第一个。</span></span>
+<span id="cb30-81"><a href="cuda-adv.html#cb30-81"></a>    texDesc.addressMode[<span class="dv">0</span>]   = cudaAddressModeWrap;</span>
+<span id="cb30-82"><a href="cuda-adv.html#cb30-82"></a>    <span class="co">//filterMode可取的值有：</span></span>
+<span id="cb30-83"><a href="cuda-adv.html#cb30-83"></a>    <span class="co">//  cudaFilterModeLinear  线性插值模式</span></span>
+<span id="cb30-84"><a href="cuda-adv.html#cb30-84"></a>    <span class="co">//  cudaFilterModePoint   取最近点模式</span></span>
+<span id="cb30-85"><a href="cuda-adv.html#cb30-85"></a>    texDesc.filterMode       = cudaFilterModeLinear;</span>
+<span id="cb30-86"><a href="cuda-adv.html#cb30-86"></a>    <span class="co">//readMode可取的值有：</span></span>
+<span id="cb30-87"><a href="cuda-adv.html#cb30-87"></a>    <span class="co">//  cudaReadModeElementType  Array是什么类型拾取出来就是什么类型</span></span>
+<span id="cb30-88"><a href="cuda-adv.html#cb30-88"></a>    <span class="co">//  cudaReadModeNormalizedFloat  进行归一化</span></span>
+<span id="cb30-89"><a href="cuda-adv.html#cb30-89"></a>    <span class="co">//注意，只有8位或16位整数支持归一化，其他类型比如int/float则不支持。</span></span>
+<span id="cb30-90"><a href="cuda-adv.html#cb30-90"></a>    texDesc.readMode         = cudaReadModeElementType;</span>
+<span id="cb30-91"><a href="cuda-adv.html#cb30-91"></a>    <span class="co">//是否对坐标归一化到[0,1). 1表示进行归一化。</span></span>
+<span id="cb30-92"><a href="cuda-adv.html#cb30-92"></a>    texDesc.normalizedCoords = <span class="dv">1</span>;</span>
+<span id="cb30-93"><a href="cuda-adv.html#cb30-93"></a>    </span>
+<span id="cb30-94"><a href="cuda-adv.html#cb30-94"></a>    <span class="co">//声明并创建纹理</span></span>
+<span id="cb30-95"><a href="cuda-adv.html#cb30-95"></a>    <span class="co">//这里相当于将纹理绑定到之前创建的cuArray</span></span>
+<span id="cb30-96"><a href="cuda-adv.html#cb30-96"></a>    <span class="co">//所以不能释放掉cuArray</span></span>
+<span id="cb30-97"><a href="cuda-adv.html#cb30-97"></a>    cudaTextureObject_t tex1DObj;</span>
+<span id="cb30-98"><a href="cuda-adv.html#cb30-98"></a>    cudaCreateTextureObject(&amp;tex1DObj, &amp;resDesc, &amp;texDesc, NULL);</span>
+<span id="cb30-99"><a href="cuda-adv.html#cb30-99"></a>    </span>
+<span id="cb30-100"><a href="cuda-adv.html#cb30-100"></a>    <span class="co">//我们想要拾取的纹理的坐标。</span></span>
+<span id="cb30-101"><a href="cuda-adv.html#cb30-101"></a>    <span class="dt">float</span>* position = (<span class="dt">float</span>*)(malloc(<span class="dv">60</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>)));</span>
+<span id="cb30-102"><a href="cuda-adv.html#cb30-102"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">60</span>; i++){</span>
+<span id="cb30-103"><a href="cuda-adv.html#cb30-103"></a>        position[i] = -<span class="fl">1.0</span> + (<span class="dt">float</span>)(i)/<span class="fl">20.0</span>;</span>
+<span id="cb30-104"><a href="cuda-adv.html#cb30-104"></a>    }</span>
+<span id="cb30-105"><a href="cuda-adv.html#cb30-105"></a>    </span>
+<span id="cb30-106"><a href="cuda-adv.html#cb30-106"></a>    <span class="dt">float</span>* result = (<span class="dt">float</span>*)(malloc(<span class="dv">60</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>)));</span>
+<span id="cb30-107"><a href="cuda-adv.html#cb30-107"></a>    </span>
+<span id="cb30-108"><a href="cuda-adv.html#cb30-108"></a>    <span class="dt">float</span>* cuposition;</span>
+<span id="cb30-109"><a href="cuda-adv.html#cb30-109"></a>    <span class="dt">float</span>* curesult;</span>
+<span id="cb30-110"><a href="cuda-adv.html#cb30-110"></a>    cudaMalloc(&amp;cuposition, <span class="dv">60</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+<span id="cb30-111"><a href="cuda-adv.html#cb30-111"></a>    cudaMalloc(&amp;curesult, <span class="dv">60</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+<span id="cb30-112"><a href="cuda-adv.html#cb30-112"></a>    cudaMemcpy(cuposition, position, <span class="dv">60</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>),</span>
+<span id="cb30-113"><a href="cuda-adv.html#cb30-113"></a>               cudaMemcpyHostToDevice);</span>
+<span id="cb30-114"><a href="cuda-adv.html#cb30-114"></a>    </span>
+<span id="cb30-115"><a href="cuda-adv.html#cb30-115"></a>    FetchFrom1DTexture&lt;&lt;&lt;<span class="dv">1</span>, <span class="dv">60</span>&gt;&gt;&gt;(tex1DObj, cuposition, curesult, <span class="dv">60</span>);</span>
+<span id="cb30-116"><a href="cuda-adv.html#cb30-116"></a>    </span>
+<span id="cb30-117"><a href="cuda-adv.html#cb30-117"></a>    cudaMemcpy(result, curesult, <span class="dv">60</span>*<span class="kw">sizeof</span>(<span class="dt">float</span>),</span>
+<span id="cb30-118"><a href="cuda-adv.html#cb30-118"></a>               cudaMemcpyDeviceToHost);</span>
+<span id="cb30-119"><a href="cuda-adv.html#cb30-119"></a>    </span>
+<span id="cb30-120"><a href="cuda-adv.html#cb30-120"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">60</span>; i++){</span>
+<span id="cb30-121"><a href="cuda-adv.html#cb30-121"></a>        printf(<span class="st">&quot;Texel at position (%- 5.3f) is %5.3f </span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb30-122"><a href="cuda-adv.html#cb30-122"></a>               position[i], result[i]);</span>
+<span id="cb30-123"><a href="cuda-adv.html#cb30-123"></a>    }</span>
+<span id="cb30-124"><a href="cuda-adv.html#cb30-124"></a>    </span>
+<span id="cb30-125"><a href="cuda-adv.html#cb30-125"></a>    cudaFree(curesult);</span>
+<span id="cb30-126"><a href="cuda-adv.html#cb30-126"></a>    cudaFree(cuposition);</span>
+<span id="cb30-127"><a href="cuda-adv.html#cb30-127"></a>    </span>
+<span id="cb30-128"><a href="cuda-adv.html#cb30-128"></a>    free(result);</span>
+<span id="cb30-129"><a href="cuda-adv.html#cb30-129"></a>    free(position);</span>
+<span id="cb30-130"><a href="cuda-adv.html#cb30-130"></a>    free(resource);</span>
+<span id="cb30-131"><a href="cuda-adv.html#cb30-131"></a>    </span>
+<span id="cb30-132"><a href="cuda-adv.html#cb30-132"></a>    <span class="co">//不再使用的纹理要销毁掉</span></span>
+<span id="cb30-133"><a href="cuda-adv.html#cb30-133"></a>    cudaDestroyTextureObject(tex1DObj);</span>
+<span id="cb30-134"><a href="cuda-adv.html#cb30-134"></a>    <span class="co">//Array用完了也要释放</span></span>
+<span id="cb30-135"><a href="cuda-adv.html#cb30-135"></a>    cudaFreeArray(cuArray);</span>
+<span id="cb30-136"><a href="cuda-adv.html#cb30-136"></a>    </span>
+<span id="cb30-137"><a href="cuda-adv.html#cb30-137"></a>}</span></code></pre></div>
+<p>画图来表示一下结果的话</p>
+<p><img src="bookdown_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p>上图中红点是我们设定的值，由于设置了<code>texDesc.normalizedCoords = 1;</code>，[0,4)被映射到了[0,1)，相应的位置{0.5, 1.5, 2.5, 3.5}就被映射到了{1/8, 3/8, 5/8, 7/8}。由于设置了<code>texDesc.addressMode[0] = cudaAddressModeWrap;</code>，超过[0,1)范围的位置得到了从[0,1)平移过去的值。</p>
+<div class="figure"><span id="fig:fig2"></span>
+<img src="figs/memcpy2D.svg" alt="图解cudaMemcpy2DToArray" width="90%" />
+<p class="caption">
+图 6.1: 图解cudaMemcpy2DToArray
+</p>
+</div>
+<p>二维纹理与上述过程大同小异。</p>
+</div>
+<div id="三维纹理的情况" class="section level4">
+<h4><span class="header-section-number">6.1.3.2</span> 三维纹理的情况</h4>
+<p>三维纹理则有所不同。在这个例子里面，我们使用float2作为纹理的类型。</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb31-1"><a href="cuda-adv.html#cb31-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb31-2"><a href="cuda-adv.html#cb31-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb31-3"><a href="cuda-adv.html#cb31-3"></a><span class="pp">#include </span><span class="im">&lt;cuda_runtime.h&gt;</span></span>
+<span id="cb31-4"><a href="cuda-adv.html#cb31-4"></a></span>
+<span id="cb31-5"><a href="cuda-adv.html#cb31-5"></a>__global__ <span class="dt">void</span> FetchFrom1DTexture(cudaTextureObject_t tex,</span>
+<span id="cb31-6"><a href="cuda-adv.html#cb31-6"></a>                                   float3* position,</span>
+<span id="cb31-7"><a href="cuda-adv.html#cb31-7"></a>                                   float2* result,</span>
+<span id="cb31-8"><a href="cuda-adv.html#cb31-8"></a>                                   <span class="dt">unsigned</span> <span class="dt">int</span> N){</span>
+<span id="cb31-9"><a href="cuda-adv.html#cb31-9"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> id = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span id="cb31-10"><a href="cuda-adv.html#cb31-10"></a>    <span class="cf">if</span>(id &lt; N){</span>
+<span id="cb31-11"><a href="cuda-adv.html#cb31-11"></a>        <span class="co">//拾取</span></span>
+<span id="cb31-12"><a href="cuda-adv.html#cb31-12"></a>        <span class="co">//tex3D的后三个参数分别为第一，第二和第三个维度上的坐标</span></span>
+<span id="cb31-13"><a href="cuda-adv.html#cb31-13"></a>        result[id] = tex3D&lt;float2&gt;(tex, position[id].x,</span>
+<span id="cb31-14"><a href="cuda-adv.html#cb31-14"></a>                                        position[id].y,</span>
+<span id="cb31-15"><a href="cuda-adv.html#cb31-15"></a>                                        position[id].z);</span>
+<span id="cb31-16"><a href="cuda-adv.html#cb31-16"></a>    }</span>
+<span id="cb31-17"><a href="cuda-adv.html#cb31-17"></a>}</span>
+<span id="cb31-18"><a href="cuda-adv.html#cb31-18"></a></span>
+<span id="cb31-19"><a href="cuda-adv.html#cb31-19"></a><span class="dt">int</span> main(){</span>
+<span id="cb31-20"><a href="cuda-adv.html#cb31-20"></a>    <span class="co">//我们要使用的纹理的原始值</span></span>
+<span id="cb31-21"><a href="cuda-adv.html#cb31-21"></a>    float2* resource = (float2*)(malloc(<span class="dv">8</span>*<span class="kw">sizeof</span>(float2)));</span>
+<span id="cb31-22"><a href="cuda-adv.html#cb31-22"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">8</span>; i++){</span>
+<span id="cb31-23"><a href="cuda-adv.html#cb31-23"></a>        resource[i].x = <span class="fl">1.0</span> + (<span class="dt">float</span>)i;</span>
+<span id="cb31-24"><a href="cuda-adv.html#cb31-24"></a>        resource[i].y = -<span class="fl">2.0</span> - <span class="fl">2.0</span> * (<span class="dt">float</span>)i;</span>
+<span id="cb31-25"><a href="cuda-adv.html#cb31-25"></a>        <span class="co">//顺便一提：</span></span>
+<span id="cb31-26"><a href="cuda-adv.html#cb31-26"></a>        <span class="co">//float2的两个分量是x和y</span></span>
+<span id="cb31-27"><a href="cuda-adv.html#cb31-27"></a>        <span class="co">//float3的三个分量是x，y和z</span></span>
+<span id="cb31-28"><a href="cuda-adv.html#cb31-28"></a>        <span class="co">//float4的四个分量是x，y，z和w</span></span>
+<span id="cb31-29"><a href="cuda-adv.html#cb31-29"></a>    }</span>
+<span id="cb31-30"><a href="cuda-adv.html#cb31-30"></a>    </span>
+<span id="cb31-31"><a href="cuda-adv.html#cb31-31"></a>    <span class="co">//创建一个CUDA Array</span></span>
+<span id="cb31-32"><a href="cuda-adv.html#cb31-32"></a>    <span class="co">//cudaChannelFormatDesc: </span></span>
+<span id="cb31-33"><a href="cuda-adv.html#cb31-33"></a>    <span class="co">//  描述Array里每个元素的样子。这里每个元素是float2。</span></span>
+<span id="cb31-34"><a href="cuda-adv.html#cb31-34"></a>    cudaChannelFormatDesc floatChannelDesc</span>
+<span id="cb31-35"><a href="cuda-adv.html#cb31-35"></a>                       = cudaCreateChannelDesc&lt;float2&gt;();</span>
+<span id="cb31-36"><a href="cuda-adv.html#cb31-36"></a>    </span>
+<span id="cb31-37"><a href="cuda-adv.html#cb31-37"></a>    <span class="co">//cudaExtent是用来描述array的形状的</span></span>
+<span id="cb31-38"><a href="cuda-adv.html#cb31-38"></a>    <span class="co">//三个参数分别是宽(x)，高(y)，和深(z)</span></span>
+<span id="cb31-39"><a href="cuda-adv.html#cb31-39"></a>    cudaExtent ext = make_cudaExtent(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>);</span>
+<span id="cb31-40"><a href="cuda-adv.html#cb31-40"></a>    <span class="co">//声明CUDA Array</span></span>
+<span id="cb31-41"><a href="cuda-adv.html#cb31-41"></a>    cudaArray_t cuArray;</span>
+<span id="cb31-42"><a href="cuda-adv.html#cb31-42"></a>    <span class="co">//为cuArray分配空间。</span></span>
+<span id="cb31-43"><a href="cuda-adv.html#cb31-43"></a>    cudaMalloc3DArray(&amp;cuArray, &amp;floatChannelDesc, ext);</span>
+<span id="cb31-44"><a href="cuda-adv.html#cb31-44"></a></span>
+<span id="cb31-45"><a href="cuda-adv.html#cb31-45"></a>    <span class="co">//由于三维拷贝参数比较复杂</span></span>
+<span id="cb31-46"><a href="cuda-adv.html#cb31-46"></a>    <span class="co">//所以CUDA设计了一个类型用于表达参数</span></span>
+<span id="cb31-47"><a href="cuda-adv.html#cb31-47"></a>    cudaMemcpy3DParms cpy3d={<span class="dv">0</span>};</span>
+<span id="cb31-48"><a href="cuda-adv.html#cb31-48"></a>    <span class="co">//纹理来源于resource数组</span></span>
+<span id="cb31-49"><a href="cuda-adv.html#cb31-49"></a>    cpy3d.srcPtr.ptr = resource;</span>
+<span id="cb31-50"><a href="cuda-adv.html#cb31-50"></a>    <span class="co">//来源数组中每两个float2算作一行</span></span>
+<span id="cb31-51"><a href="cuda-adv.html#cb31-51"></a>    cpy3d.srcPtr.pitch = <span class="dv">2</span>*<span class="kw">sizeof</span>(float2);</span>
+<span id="cb31-52"><a href="cuda-adv.html#cb31-52"></a>    <span class="co">//来源数组每行取两个元素</span></span>
+<span id="cb31-53"><a href="cuda-adv.html#cb31-53"></a>    cpy3d.srcPtr.xsize = <span class="dv">2</span>;</span>
+<span id="cb31-54"><a href="cuda-adv.html#cb31-54"></a>    <span class="co">//来源数组每两行组成一层</span></span>
+<span id="cb31-55"><a href="cuda-adv.html#cb31-55"></a>    cpy3d.srcPtr.ysize = <span class="dv">2</span>;</span>
+<span id="cb31-56"><a href="cuda-adv.html#cb31-56"></a>    <span class="co">//拷贝的目的地是cuArray数组</span></span>
+<span id="cb31-57"><a href="cuda-adv.html#cb31-57"></a>    cpy3d.dstArray = cuArray;</span>
+<span id="cb31-58"><a href="cuda-adv.html#cb31-58"></a>    <span class="co">//目标里面在三个维度上各有几个元素，也是用cudaExtent</span></span>
+<span id="cb31-59"><a href="cuda-adv.html#cb31-59"></a>    <span class="co">//这里要复制到整个array，所以重用了前面定义的ext</span></span>
+<span id="cb31-60"><a href="cuda-adv.html#cb31-60"></a>    cpy3d.extent = ext;</span>
+<span id="cb31-61"><a href="cuda-adv.html#cb31-61"></a>    <span class="co">//从主机内存拷贝到显存</span></span>
+<span id="cb31-62"><a href="cuda-adv.html#cb31-62"></a>    cpy3d.kind = cudaMemcpyHostToDevice;</span>
+<span id="cb31-63"><a href="cuda-adv.html#cb31-63"></a>    <span class="co">//三维拷贝也可以像二维拷贝一样设置起点，这里就不详述了</span></span>
+<span id="cb31-64"><a href="cuda-adv.html#cb31-64"></a>    <span class="co">//可以参考cuda Toolkit 11.0.3的文档里</span></span>
+<span id="cb31-65"><a href="cuda-adv.html#cb31-65"></a>    <span class="co">//cuda runtime API中5.9节关于cudaMemcpy3D的说明</span></span>
+<span id="cb31-66"><a href="cuda-adv.html#cb31-66"></a>    cudaMemcpy3D(&amp;cpy3d);</span>
+<span id="cb31-67"><a href="cuda-adv.html#cb31-67"></a>    </span>
+<span id="cb31-68"><a href="cuda-adv.html#cb31-68"></a></span>
+<span id="cb31-69"><a href="cuda-adv.html#cb31-69"></a>    <span class="kw">struct</span> cudaResourceDesc resDesc;</span>
+<span id="cb31-70"><a href="cuda-adv.html#cb31-70"></a>    memset(&amp;resDesc, <span class="dv">0</span>, <span class="kw">sizeof</span>(resDesc));</span>
+<span id="cb31-71"><a href="cuda-adv.html#cb31-71"></a>    resDesc.resType = cudaResourceTypeArray;</span>
+<span id="cb31-72"><a href="cuda-adv.html#cb31-72"></a>    resDesc.res.array.array = cuArray;</span>
+<span id="cb31-73"><a href="cuda-adv.html#cb31-73"></a>    </span>
+<span id="cb31-74"><a href="cuda-adv.html#cb31-74"></a>    <span class="kw">struct</span> cudaTextureDesc texDesc;</span>
+<span id="cb31-75"><a href="cuda-adv.html#cb31-75"></a>    memset(&amp;texDesc, <span class="dv">0</span>, <span class="kw">sizeof</span>(texDesc));</span>
+<span id="cb31-76"><a href="cuda-adv.html#cb31-76"></a>    <span class="co">//这回我们使用“边界”模式</span></span>
+<span id="cb31-77"><a href="cuda-adv.html#cb31-77"></a>    <span class="co">//因为是三维纹理，所以三个都要设置</span></span>
+<span id="cb31-78"><a href="cuda-adv.html#cb31-78"></a>    texDesc.addressMode[<span class="dv">0</span>]   = cudaAddressModeBorder;</span>
+<span id="cb31-79"><a href="cuda-adv.html#cb31-79"></a>    texDesc.addressMode[<span class="dv">1</span>]   = cudaAddressModeBorder;</span>
+<span id="cb31-80"><a href="cuda-adv.html#cb31-80"></a>    texDesc.addressMode[<span class="dv">2</span>]   = cudaAddressModeBorder;</span>
+<span id="cb31-81"><a href="cuda-adv.html#cb31-81"></a></span>
+<span id="cb31-82"><a href="cuda-adv.html#cb31-82"></a>    texDesc.filterMode       = cudaFilterModeLinear;</span>
+<span id="cb31-83"><a href="cuda-adv.html#cb31-83"></a>    texDesc.readMode         = cudaReadModeElementType;</span>
+<span id="cb31-84"><a href="cuda-adv.html#cb31-84"></a>    <span class="co">//这次不做归一化</span></span>
+<span id="cb31-85"><a href="cuda-adv.html#cb31-85"></a>    texDesc.normalizedCoords = <span class="dv">0</span>;</span>
+<span id="cb31-86"><a href="cuda-adv.html#cb31-86"></a>    </span>
+<span id="cb31-87"><a href="cuda-adv.html#cb31-87"></a>    <span class="co">//声明并创建纹理</span></span>
+<span id="cb31-88"><a href="cuda-adv.html#cb31-88"></a>    cudaTextureObject_t tex3DObj;</span>
+<span id="cb31-89"><a href="cuda-adv.html#cb31-89"></a>    cudaCreateTextureObject(&amp;tex3DObj, &amp;resDesc, &amp;texDesc, NULL);</span>
+<span id="cb31-90"><a href="cuda-adv.html#cb31-90"></a>    </span>
+<span id="cb31-91"><a href="cuda-adv.html#cb31-91"></a>    <span class="co">//我们想要拾取的纹理的坐标。</span></span>
+<span id="cb31-92"><a href="cuda-adv.html#cb31-92"></a>    float3* position = (float3*)(malloc(<span class="dv">64</span>*<span class="kw">sizeof</span>(float3)));</span>
+<span id="cb31-93"><a href="cuda-adv.html#cb31-93"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">4</span>; i++){</span>
+<span id="cb31-94"><a href="cuda-adv.html#cb31-94"></a>        <span class="cf">for</span>(<span class="dt">int</span> j = <span class="dv">0</span>; j &lt; <span class="dv">4</span>; j++){</span>
+<span id="cb31-95"><a href="cuda-adv.html#cb31-95"></a>            <span class="cf">for</span>(<span class="dt">int</span> k = <span class="dv">0</span>; k &lt; <span class="dv">4</span>; k++){</span>
+<span id="cb31-96"><a href="cuda-adv.html#cb31-96"></a>                <span class="dt">int</span> id = i + j*<span class="dv">4</span> + k*<span class="dv">16</span>;</span>
+<span id="cb31-97"><a href="cuda-adv.html#cb31-97"></a>                position[id].x = (<span class="dt">float</span>)i - <span class="fl">0.5</span>;</span>
+<span id="cb31-98"><a href="cuda-adv.html#cb31-98"></a>                position[id].y = (<span class="dt">float</span>)j - <span class="fl">0.5</span>;</span>
+<span id="cb31-99"><a href="cuda-adv.html#cb31-99"></a>                position[id].z = (<span class="dt">float</span>)k - <span class="fl">0.5</span>;</span>
+<span id="cb31-100"><a href="cuda-adv.html#cb31-100"></a>            }</span>
+<span id="cb31-101"><a href="cuda-adv.html#cb31-101"></a>        }</span>
+<span id="cb31-102"><a href="cuda-adv.html#cb31-102"></a>    }</span>
+<span id="cb31-103"><a href="cuda-adv.html#cb31-103"></a>    </span>
+<span id="cb31-104"><a href="cuda-adv.html#cb31-104"></a>    float2* result = (float2*)(malloc(<span class="dv">64</span>*<span class="kw">sizeof</span>(float2)));</span>
+<span id="cb31-105"><a href="cuda-adv.html#cb31-105"></a>    float3* cuposition;</span>
+<span id="cb31-106"><a href="cuda-adv.html#cb31-106"></a>    float2* curesult;</span>
+<span id="cb31-107"><a href="cuda-adv.html#cb31-107"></a>    cudaMalloc(&amp;cuposition, <span class="dv">64</span>*<span class="kw">sizeof</span>(float3));</span>
+<span id="cb31-108"><a href="cuda-adv.html#cb31-108"></a>    cudaMalloc(&amp;curesult, <span class="dv">64</span>*<span class="kw">sizeof</span>(float2));</span>
+<span id="cb31-109"><a href="cuda-adv.html#cb31-109"></a>    cudaMemcpy(cuposition, position, <span class="dv">64</span>*<span class="kw">sizeof</span>(float3),</span>
+<span id="cb31-110"><a href="cuda-adv.html#cb31-110"></a>               cudaMemcpyHostToDevice);</span>
+<span id="cb31-111"><a href="cuda-adv.html#cb31-111"></a>    </span>
+<span id="cb31-112"><a href="cuda-adv.html#cb31-112"></a>    FetchFrom1DTexture&lt;&lt;&lt;<span class="dv">1</span>, <span class="dv">64</span>&gt;&gt;&gt;(tex3DObj, cuposition, curesult, <span class="dv">64</span>);</span>
+<span id="cb31-113"><a href="cuda-adv.html#cb31-113"></a>    </span>
+<span id="cb31-114"><a href="cuda-adv.html#cb31-114"></a>    cudaMemcpy(result, curesult, <span class="dv">64</span>*<span class="kw">sizeof</span>(float2),</span>
+<span id="cb31-115"><a href="cuda-adv.html#cb31-115"></a>               cudaMemcpyDeviceToHost);</span>
+<span id="cb31-116"><a href="cuda-adv.html#cb31-116"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">4</span>; i++){</span>
+<span id="cb31-117"><a href="cuda-adv.html#cb31-117"></a>        <span class="cf">for</span>(<span class="dt">int</span> j = <span class="dv">0</span>; j &lt; <span class="dv">4</span>; j++){</span>
+<span id="cb31-118"><a href="cuda-adv.html#cb31-118"></a>            <span class="cf">for</span>(<span class="dt">int</span> k = <span class="dv">0</span>; k &lt; <span class="dv">4</span>; k++){</span>
+<span id="cb31-119"><a href="cuda-adv.html#cb31-119"></a>                <span class="dt">int</span> id = i + j*<span class="dv">4</span> + k*<span class="dv">16</span>;</span>
+<span id="cb31-120"><a href="cuda-adv.html#cb31-120"></a>                printf(<span class="st">&quot;Texel at position (%- 5.3f, %- 5.3f, %- 5.3f)&quot;</span></span>
+<span id="cb31-121"><a href="cuda-adv.html#cb31-121"></a>                       <span class="st">&quot; is (%- 5.3f, %- 5.3f) </span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb31-122"><a href="cuda-adv.html#cb31-122"></a>                        position[id].x, position[id].y, position[id].z,</span>
+<span id="cb31-123"><a href="cuda-adv.html#cb31-123"></a>                        result[id].x, result[id].y);</span>
+<span id="cb31-124"><a href="cuda-adv.html#cb31-124"></a>            }</span>
+<span id="cb31-125"><a href="cuda-adv.html#cb31-125"></a>        }</span>
+<span id="cb31-126"><a href="cuda-adv.html#cb31-126"></a>    }</span>
+<span id="cb31-127"><a href="cuda-adv.html#cb31-127"></a>    cudaFree(curesult);</span>
+<span id="cb31-128"><a href="cuda-adv.html#cb31-128"></a>    cudaFree(cuposition);</span>
+<span id="cb31-129"><a href="cuda-adv.html#cb31-129"></a>    free(result);</span>
+<span id="cb31-130"><a href="cuda-adv.html#cb31-130"></a>    free(position);</span>
+<span id="cb31-131"><a href="cuda-adv.html#cb31-131"></a>    free(resource);</span>
+<span id="cb31-132"><a href="cuda-adv.html#cb31-132"></a>    cudaDestroyTextureObject(tex3DObj);</span>
+<span id="cb31-133"><a href="cuda-adv.html#cb31-133"></a>    cudaFreeArray(cuArray);</span>
+<span id="cb31-134"><a href="cuda-adv.html#cb31-134"></a>    </span>
+<span id="cb31-135"><a href="cuda-adv.html#cb31-135"></a>}</span></code></pre></div>
+<p>可以尝试取不同的位置看看拾取到的值是什么。</p>
+</div>
+</div>
+<div id="如何实现双精度纹理" class="section level3">
+<h3><span class="header-section-number">6.1.4</span> 如何实现双精度纹理</h3>
+<p>CUDA不支持双精度纹理，但是可以用一个int2取去“骗”CUDA。<br />
+用<code>cudaCreateChannelDesc&lt;int2&gt;()</code>生成int2的描述。<br />
+取到纹理以后可以用<code>__hiloint2double</code>将两个int转化为double。<br />
+但是注意，这里必须得将filterMode设置为<code>cudaFilterModePoint</code>，因为对两个uint插值再组合成double肯定和对double插值得到的结果不同。（详细原理可以参考附录中的浮点数的计算机表示方法）。</p>
+<blockquote>
+<p>假设用<code>int2 texel = tex3D&lt;int2&gt;(texture, position);</code>拾取了texel<br />
+要生成double需要<code>__hiloint2double(texel.y, texel.x)</code><br />
+这里先用y后用x似乎有点反直觉，但这其实是因为处理器是小端序的，因此要先写y</p>
+</blockquote>
+</div>
+<div id="所以为什么要用纹理" class="section level3">
+<h3><span class="header-section-number">6.1.5</span> 所以为什么要用纹理？</h3>
+<p>上面提到了使用纹理的诸多限制，而且还很麻烦。<br />
+比如要使用double的话不能插值，还要额外进行转换。即便是可以插值的float，插值精度也不如手动插值，那是不是这些情况下使用纹理有什么意义呢？<br />
+这涉及到缓存的原理。简单来讲，每次访问内存，如果要访问的内容没有被缓存，那么缓存会把要访问的内存和其附近的内存缓存起来，下次如果访问相邻的内存可以直接从缓存获取数据，减少访问内存的开销。而一般的缓存设计认为内存是线性的，但是在二维或者三维情况下，每次访问内存后，接着访问的很可能是逻辑上在空间中相邻的内存，这样就无法利用缓存进行高速读写。GPU中有专门的纹理缓存，具有空间局部性，会缓存在逻辑空间中临近的内容，而不再是线性内存的“附近”。</p>
+<blockquote>
+<p>CUDA的文档中提到纹理缓存具有二维的空间局部性，但是没有提到三维的情况。因此不能确定缓存在三维纹理的情况下是如何工作的。但即便是二维的局部性，也会比普通的一维缓存命中率高一些。</p>
+</blockquote>
+</div>
+</div>
+<div id="流" class="section level2">
+<h2><span class="header-section-number">6.2</span> 流</h2>
+<blockquote>
+<p><em>参差荇菜，左右流之。窈窕淑女，寤寐求之。——《诗经》</em></p>
+</blockquote>
+<p>之前的程序，我们都是CPU安置好数据以后把任务安排给GPU，然后就开始等，等到GPU运行完程序以后把数据拿回来。但是我们是不是可以把CPU也利用起来干点别的？可以的！</p>
+<p>这里要引入一个流的概念。我们可以创建一个流，然后把需要做的事情放进流里面，一个流里有任务的话就会自动开始工作。这时主机的工作只是把任务推到流里面，然后就可以做别的工作了。最后再让流和自己同步一下，保证流里的工作做完了即可。</p>
+<p>事实上，当不创建新的流的时候，是使用默认流来工作的，这个流是“阻塞”的，也就是说这个流里的任务完成之前会防止CPU进行下一步操作。而我们另外创建的流是“非阻塞”的，不会对CPU的工作流程造成影响。</p>
+<div id="举个例子" class="section level3">
+<h3><span class="header-section-number">6.2.1</span> 举个例子</h3>
+<div class="sourceCode" id="cb32"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb32-1"><a href="cuda-adv.html#cb32-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb32-2"><a href="cuda-adv.html#cb32-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb32-3"><a href="cuda-adv.html#cb32-3"></a><span class="pp">#include </span><span class="im">&lt;time.h&gt;</span></span>
+<span id="cb32-4"><a href="cuda-adv.html#cb32-4"></a><span class="pp">#include </span><span class="im">&lt;cuda_runtime.h&gt;</span></span>
+<span id="cb32-5"><a href="cuda-adv.html#cb32-5"></a></span>
+<span id="cb32-6"><a href="cuda-adv.html#cb32-6"></a>__global__ <span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">double</span>* d,</span>
+<span id="cb32-7"><a href="cuda-adv.html#cb32-7"></a>                       <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
+<span id="cb32-8"><a href="cuda-adv.html#cb32-8"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> id = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span id="cb32-9"><a href="cuda-adv.html#cb32-9"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> j;</span>
+<span id="cb32-10"><a href="cuda-adv.html#cb32-10"></a>    <span class="cf">if</span>(id &lt; N){</span>
+<span id="cb32-11"><a href="cuda-adv.html#cb32-11"></a>        <span class="cf">for</span>(j = <span class="dv">0</span>; j &lt; <span class="dv">1000000</span>; j++){</span>
+<span id="cb32-12"><a href="cuda-adv.html#cb32-12"></a>            d[id] = a[id] * b[id] + c[id];</span>
+<span id="cb32-13"><a href="cuda-adv.html#cb32-13"></a>        }</span>
+<span id="cb32-14"><a href="cuda-adv.html#cb32-14"></a>    }</span>
+<span id="cb32-15"><a href="cuda-adv.html#cb32-15"></a>}</span>
+<span id="cb32-16"><a href="cuda-adv.html#cb32-16"></a></span>
+<span id="cb32-17"><a href="cuda-adv.html#cb32-17"></a><span class="dt">int</span> main(){</span>
+<span id="cb32-18"><a href="cuda-adv.html#cb32-18"></a>    <span class="dt">double</span>* a; </span>
+<span id="cb32-19"><a href="cuda-adv.html#cb32-19"></a>    <span class="dt">double</span>* b; </span>
+<span id="cb32-20"><a href="cuda-adv.html#cb32-20"></a>    <span class="dt">double</span>* c; </span>
+<span id="cb32-21"><a href="cuda-adv.html#cb32-21"></a>    <span class="dt">double</span>* d;</span>
+<span id="cb32-22"><a href="cuda-adv.html#cb32-22"></a></span>
+<span id="cb32-23"><a href="cuda-adv.html#cb32-23"></a>    <span class="dt">double</span>** cua;</span>
+<span id="cb32-24"><a href="cuda-adv.html#cb32-24"></a>    <span class="dt">double</span>** cub;</span>
+<span id="cb32-25"><a href="cuda-adv.html#cb32-25"></a>    <span class="dt">double</span>** cuc;</span>
+<span id="cb32-26"><a href="cuda-adv.html#cb32-26"></a>    <span class="dt">double</span>** cud;</span>
+<span id="cb32-27"><a href="cuda-adv.html#cb32-27"></a></span>
+<span id="cb32-28"><a href="cuda-adv.html#cb32-28"></a>    cudaMallocHost(&amp;a, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-29"><a href="cuda-adv.html#cb32-29"></a>    cudaMallocHost(&amp;b, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-30"><a href="cuda-adv.html#cb32-30"></a>    cudaMallocHost(&amp;c, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-31"><a href="cuda-adv.html#cb32-31"></a>    cudaMallocHost(&amp;d, <span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-32"><a href="cuda-adv.html#cb32-32"></a></span>
+<span id="cb32-33"><a href="cuda-adv.html#cb32-33"></a>    cua = (<span class="dt">double</span>**)(malloc(<span class="dv">2</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>*)));</span>
+<span id="cb32-34"><a href="cuda-adv.html#cb32-34"></a>    cub = (<span class="dt">double</span>**)(malloc(<span class="dv">2</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>*)));</span>
+<span id="cb32-35"><a href="cuda-adv.html#cb32-35"></a>    cuc = (<span class="dt">double</span>**)(malloc(<span class="dv">2</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>*)));</span>
+<span id="cb32-36"><a href="cuda-adv.html#cb32-36"></a>    cud = (<span class="dt">double</span>**)(malloc(<span class="dv">2</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>*)));</span>
+<span id="cb32-37"><a href="cuda-adv.html#cb32-37"></a></span>
+<span id="cb32-38"><a href="cuda-adv.html#cb32-38"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb32-39"><a href="cuda-adv.html#cb32-39"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb32-40"><a href="cuda-adv.html#cb32-40"></a>        a[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb32-41"><a href="cuda-adv.html#cb32-41"></a>        b[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb32-42"><a href="cuda-adv.html#cb32-42"></a>        c[i] = ((<span class="dt">double</span>)i)/<span class="fl">10000.0</span>;</span>
+<span id="cb32-43"><a href="cuda-adv.html#cb32-43"></a>    }</span>
+<span id="cb32-44"><a href="cuda-adv.html#cb32-44"></a>    </span>
+<span id="cb32-45"><a href="cuda-adv.html#cb32-45"></a>    <span class="co">//声明流</span></span>
+<span id="cb32-46"><a href="cuda-adv.html#cb32-46"></a>    cudaStream_t streams[<span class="dv">2</span>];</span>
+<span id="cb32-47"><a href="cuda-adv.html#cb32-47"></a>    <span class="co">//创建流，并分配一些显存空间。</span></span>
+<span id="cb32-48"><a href="cuda-adv.html#cb32-48"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">2</span>; i++){</span>
+<span id="cb32-49"><a href="cuda-adv.html#cb32-49"></a>        cudaStreamCreate(&amp;streams[i]);</span>
+<span id="cb32-50"><a href="cuda-adv.html#cb32-50"></a>        cudaMalloc(&amp;(cua[i]),<span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-51"><a href="cuda-adv.html#cb32-51"></a>        cudaMalloc(&amp;(cub[i]),<span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-52"><a href="cuda-adv.html#cb32-52"></a>        cudaMalloc(&amp;(cuc[i]),<span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-53"><a href="cuda-adv.html#cb32-53"></a>        cudaMalloc(&amp;(cud[i]),<span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>));</span>
+<span id="cb32-54"><a href="cuda-adv.html#cb32-54"></a>    }</span>
+<span id="cb32-55"><a href="cuda-adv.html#cb32-55"></a></span>
+<span id="cb32-56"><a href="cuda-adv.html#cb32-56"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">8</span>; i++){</span>
+<span id="cb32-57"><a href="cuda-adv.html#cb32-57"></a>        cudaMemcpyAsync(cua[i%<span class="dv">2</span>], a+i*<span class="dv">1024</span>, <span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>),</span>
+<span id="cb32-58"><a href="cuda-adv.html#cb32-58"></a>                        cudaMemcpyHostToDevice, streams[i%<span class="dv">2</span>]);</span>
+<span id="cb32-59"><a href="cuda-adv.html#cb32-59"></a></span>
+<span id="cb32-60"><a href="cuda-adv.html#cb32-60"></a>        cudaMemcpyAsync(cub[i%<span class="dv">2</span>], b+i*<span class="dv">1024</span>, <span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>),</span>
+<span id="cb32-61"><a href="cuda-adv.html#cb32-61"></a>                        cudaMemcpyHostToDevice, streams[i%<span class="dv">2</span>]);</span>
+<span id="cb32-62"><a href="cuda-adv.html#cb32-62"></a></span>
+<span id="cb32-63"><a href="cuda-adv.html#cb32-63"></a>        cudaMemcpyAsync(cuc[i%<span class="dv">2</span>], c+i*<span class="dv">1024</span>, <span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>),</span>
+<span id="cb32-64"><a href="cuda-adv.html#cb32-64"></a>                        cudaMemcpyHostToDevice, streams[i%<span class="dv">2</span>]);</span>
+<span id="cb32-65"><a href="cuda-adv.html#cb32-65"></a></span>
+<span id="cb32-66"><a href="cuda-adv.html#cb32-66"></a>        muladd&lt;&lt;&lt;<span class="dv">16</span>, <span class="dv">256</span>, <span class="dv">0</span>, streams[i%<span class="dv">2</span>]&gt;&gt;&gt;(cua[i%<span class="dv">2</span>], cub[i%<span class="dv">2</span>],</span>
+<span id="cb32-67"><a href="cuda-adv.html#cb32-67"></a>                                             cuc[i%<span class="dv">2</span>], cud[i%<span class="dv">2</span>], <span class="dv">1024</span>);</span>
+<span id="cb32-68"><a href="cuda-adv.html#cb32-68"></a></span>
+<span id="cb32-69"><a href="cuda-adv.html#cb32-69"></a>        cudaMemcpyAsync(d+i*<span class="dv">1024</span>, cud[i%<span class="dv">2</span>], <span class="dv">1024</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>),</span>
+<span id="cb32-70"><a href="cuda-adv.html#cb32-70"></a>                        cudaMemcpyDeviceToHost, streams[i%<span class="dv">2</span>]);</span>
+<span id="cb32-71"><a href="cuda-adv.html#cb32-71"></a>    }</span>
+<span id="cb32-72"><a href="cuda-adv.html#cb32-72"></a>    <span class="co">//CPU现在可以干点别的</span></span>
+<span id="cb32-73"><a href="cuda-adv.html#cb32-73"></a>    <span class="co">//......</span></span>
+<span id="cb32-74"><a href="cuda-adv.html#cb32-74"></a>    <span class="co">//搞完以后</span></span>
+<span id="cb32-75"><a href="cuda-adv.html#cb32-75"></a>    <span class="co">//和显卡同步一下，保证显卡上的每个流都执行完了里面的任务</span></span>
+<span id="cb32-76"><a href="cuda-adv.html#cb32-76"></a>    cudaDeviceSynchronize();</span>
+<span id="cb32-77"><a href="cuda-adv.html#cb32-77"></a></span>
+<span id="cb32-78"><a href="cuda-adv.html#cb32-78"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb32-79"><a href="cuda-adv.html#cb32-79"></a>        <span class="cf">if</span>(i % <span class="dv">1001</span> == <span class="dv">0</span>){</span>
+<span id="cb32-80"><a href="cuda-adv.html#cb32-80"></a>            printf(<span class="st">&quot;%5llu: %16.8f * %16.8f + %16.8f = %16.8f (%d)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb32-81"><a href="cuda-adv.html#cb32-81"></a>                    i, a[i], b[i], c[i], d[i], d[i]==a[i]*b[i]+c[i]);</span>
+<span id="cb32-82"><a href="cuda-adv.html#cb32-82"></a>        }</span>
+<span id="cb32-83"><a href="cuda-adv.html#cb32-83"></a>    }</span>
+<span id="cb32-84"><a href="cuda-adv.html#cb32-84"></a></span>
+<span id="cb32-85"><a href="cuda-adv.html#cb32-85"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">2</span>; i++){</span>
+<span id="cb32-86"><a href="cuda-adv.html#cb32-86"></a>        cudaFree(cua[i]);</span>
+<span id="cb32-87"><a href="cuda-adv.html#cb32-87"></a>        cudaFree(cub[i]);</span>
+<span id="cb32-88"><a href="cuda-adv.html#cb32-88"></a>        cudaFree(cuc[i]);</span>
+<span id="cb32-89"><a href="cuda-adv.html#cb32-89"></a>        cudaFree(cud[i]);</span>
+<span id="cb32-90"><a href="cuda-adv.html#cb32-90"></a>        <span class="co">//用完的流要销毁掉</span></span>
+<span id="cb32-91"><a href="cuda-adv.html#cb32-91"></a>        cudaStreamDestroy(streams[i]);</span>
+<span id="cb32-92"><a href="cuda-adv.html#cb32-92"></a>    }</span>
+<span id="cb32-93"><a href="cuda-adv.html#cb32-93"></a>    <span class="co">//cudaFreeHost 和 cudaMallocHost相对应</span></span>
+<span id="cb32-94"><a href="cuda-adv.html#cb32-94"></a></span>
+<span id="cb32-95"><a href="cuda-adv.html#cb32-95"></a>    free(cua);</span>
+<span id="cb32-96"><a href="cuda-adv.html#cb32-96"></a>    free(cub);</span>
+<span id="cb32-97"><a href="cuda-adv.html#cb32-97"></a>    free(cuc);</span>
+<span id="cb32-98"><a href="cuda-adv.html#cb32-98"></a>    free(cud);</span>
+<span id="cb32-99"><a href="cuda-adv.html#cb32-99"></a></span>
+<span id="cb32-100"><a href="cuda-adv.html#cb32-100"></a>    cudaFreeHost(a);</span>
+<span id="cb32-101"><a href="cuda-adv.html#cb32-101"></a>    cudaFreeHost(b);</span>
+<span id="cb32-102"><a href="cuda-adv.html#cb32-102"></a>    cudaFreeHost(c);</span>
+<span id="cb32-103"><a href="cuda-adv.html#cb32-103"></a>    cudaFreeHost(d);</span>
+<span id="cb32-104"><a href="cuda-adv.html#cb32-104"></a>}</span></code></pre></div>
+<p>上面的程序创建了两个流。为了方便管理，每个流使用的显存空间也是分开申请的。</p>
+<p>注意到程序里面分配主机内存空间的时候没有使用<code>malloc</code>而是使用了<code>cudaMallocHost</code>。这是因为非同步拷贝需要被拷贝的主机内容是“页锁定”的内存，而直接用<code>malloc</code>申请的空间不具备这种性质。</p>
+<blockquote>
+<p>内存是分页的，具体讲起来比较复杂，大致来说就是程序中使用的地址是虚拟的，然后在经过一个虚拟地址到真实地址的映射来访问真实内存位置。而真实位置甚至可能是不连续的。而所谓“页锁定”内存是真实内存地址，不分页的。这样GPU从内存读取数据就不需要通过CPU查询页表，可以直接从内存取数据了。使用<code>cudaMallocHost</code>不仅使得使用流成为可能，还可以提高数据传输效率。<br />
+但是要注意，不分页意味着即使内存占用过高的时候操作系统也不能将这部分内存放入交换空间。因此申请的页锁定内存过大可能会影响其他用户的体验。这些内存使用完后也请及时释放。</p>
+</blockquote>
+<p>后面的<code>cudaMemcpyAsync</code>和<code>cudaMemcpy</code>是类似的，只不过要在最后一个参数里指定这个操作要被安排在哪一个流里面。</p>
+<p>调用kernel的时候，<code>&lt;&lt;&lt;...&gt;&gt;&gt;</code>里面的参数变成了4个。前两个还不变，第三个表示要动态申请的共享内存的大小，由于这里不需要共享内存，填0即可。第四个参数是要使用的流。</p>
+<blockquote>
+<p>共享内存是一种“片上内存”，和显存空间是独立的。共享内存空间比较小，但是速度比显存快。共享内存是分配给block的，也就是说每个block能看到自己的共享内存，但是互相是看不到的。一个block中的所有线程都可以看到这个block的共享内存，因此可以通过共享内存来通信。每一个块能拥有的共享内存大小可以查询（参考CUDA sample里的1_Utilities/deviceQuery）。</p>
+</blockquote>
+<p>后面的<code>cudaDeviceSynchronize();</code>可以同步一块显卡上的所有流。它会等待直到所有流里的所有任务都完成后才返回，相当于让CPU等待GPU完成工作。如果想要只同步一个流，可以用<code>cudaStreamSynchronize</code>函数，传入一个<code>stream_t</code>变量即可同步对应的流。</p>
+<p>一个流里的任务是按照推入任务顺序完成的，流之间如果不进行同步是不保证执行顺序的。</p>
+</div>
+<div id="回调" class="section level3">
+<h3><span class="header-section-number">6.2.2</span> 回调</h3>
+<p>除了可以向流里添加内存拷贝任务和执行kernel任务，还可以添加回调任务。</p>
+<p>回调任务相当于一个运行在CPU上的函数，当回调任务前面的任务都结束后，会自动调用这个函数。</p>
+<p>下面的代码定义一个回调函数</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="cuda-adv.html#cb33-1"></a></span>
+<span id="cb33-2"><a href="cuda-adv.html#cb33-2"></a><span class="dt">void</span> CUDART_CB my_callback(cudaStream_t stream,</span>
+<span id="cb33-3"><a href="cuda-adv.html#cb33-3"></a>                           cudaError_t status, <span class="dt">void</span>* data) {</span>
+<span id="cb33-4"><a href="cuda-adv.html#cb33-4"></a>    <span class="dt">char</span>* message = (<span class="dt">char</span>*)(data);</span>
+<span id="cb33-5"><a href="cuda-adv.html#cb33-5"></a>    printf(<span class="st">&quot;Callback!</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb33-6"><a href="cuda-adv.html#cb33-6"></a>    printf(<span class="st">&quot;Message: %s</span><span class="sc">\n</span><span class="st">&quot;</span>, message);</span>
+<span id="cb33-7"><a href="cuda-adv.html#cb33-7"></a>}</span></code></pre></div>
+<p>其中的data是<code>void</code>型的指针，可以用来向回调函数传递信息。这里我们随便传递一个字符串。</p>
+<p>下面的代码将上面的回调函数添加到一个叫做<code>stream1</code>的流</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="cuda-adv.html#cb34-1"></a><span class="dt">char</span>* msg = <span class="st">&quot;Encountering a callback!&quot;</span>;</span>
+<span id="cb34-2"><a href="cuda-adv.html#cb34-2"></a>cudaStreamAddCallback(stream1, my_callback, (<span class="dt">void</span>*)msg, <span class="dv">0</span>);</span></code></pre></div>
+<p>其中第四个参数是为未来的功能预留的，现在必须设为0.</p>
+<p>第三个参数就是即将变成上面定义回调函数时设定的<code>void* data</code>的内容。</p>
+</div>
+<div id="什么时候要使用流" class="section level3">
+<h3><span class="header-section-number">6.2.3</span> 什么时候要使用流</h3>
+<p>当数据拷贝和数据处理用时差不多的时候使用流可以提高速度。这是因为进行计算的时候内存和显卡之间的带宽时闲置的。使用多个流可以在计算一部分数据的时候拷贝其他数据。</p>
+<p>同时，由于PCIe总线是全双工的，主机到设备的拷贝和设备到主机的拷贝也是可以同时进行的。</p>
+<p>如果拷贝上花的时间比计算时间长，也许要考虑包含拷贝时间的话这种计算是不是真的比CPU快了。（其实拷贝还蛮快的）</p>
+<p>如果是计算密集型的，拷贝时间可以忽略不计的话不建议使用非默认的流（除非希望在CPU上同时进行其他工作）。</p>
+<p>此外，永远不建议将数据分为非常多的小块。因为拷贝数据的带宽虽然很宽，但是有一定的延迟。分太多的块的话延迟时间累积起来也不可小觑。</p>
+</div>
+</div>
+<div id="缓存和共享内存的分配" class="section level2">
+<h2><span class="header-section-number">6.3</span> 缓存和共享内存的分配</h2>
+<p><strong><em>这一节的内容我也没有尝试过，但是原则上应该是可行的。</em></strong></p>
+<p>共享内存是似乎是直接放在高速缓存中的。cuda允许调整共享内存和L1高速缓存的比例。</p>
+<p>通过<code>cudaFuncSetCacheConfig</code>函数可以调整。函数的第一个参数是一个kernel函数（也就是<code>__global__</code>函数），第二个参数可以是</p>
+<ul>
+<li>cudaFuncCachePreferNone 使用默认值</li>
+<li>cudaFuncCachePreferShared 更多的共享内存</li>
+<li>cudaFuncCachePreferL1 更多的L1高速缓存</li>
+<li>cudaFuncCachePreferEqual 平均分配</li>
+</ul>
+</div>
+<div id="cuadv_sum" class="section level2">
+<h2><span class="header-section-number">6.4</span> 本章小结</h2>
+<p>这一章就到这里了。其他内容比如各种“局部内存”、“常量内存”和“共享内存”等内容，还有其他各种<del>奇技淫巧</del>技术我也没有使用过，这里就不谈了。诸君感兴趣可以自己找资料看一看。</p>
+<p><strong>到了这一章，小朋友已经问不动问题了。</strong></p>
+<p>诸君有疑问再讨论吧。有合适的问题可以在后续版本中更新上来。</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="cuda.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="nsight.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yihui/bookdown-chinese/edit/master/04-advanced.Rmd",
+"text": "编辑"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["bookdown.pdf", "bookdown.epub"],
+"toc": {
+"collapse": "none"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>C 高速缓存 | x40并行编程指南</title>
+  <meta name="description" content="在x40服务器上并行运算" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="C 高速缓存 | x40并行编程指南" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="在x40服务器上并行运算" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="C 高速缓存 | x40并行编程指南" />
+  
+  <meta name="twitter:description" content="在x40服务器上并行运算" />
+  
+
+<meta name="author" content="cucumber" />
+
+
+<meta name="date" content="2020-09-16" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="float.html"/>
+<link rel="next" href="references.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css\style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">x40并行编程指南</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>前言</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#致谢"><i class="fa fa-check"></i>致谢</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="author.html"><a href="author.html"><i class="fa fa-check"></i>作者简介</a></li>
+<li class="chapter" data-level="" data-path="x40.html"><a href="x40.html"><i class="fa fa-check"></i>x40服务器</a><ul>
+<li class="chapter" data-level="0.1" data-path="x40.html"><a href="x40.html#基本硬件信息"><i class="fa fa-check"></i><b>0.1</b> 基本硬件信息</a></li>
+</ul></li>
+<li class="part"><span><b>I c语言并行编程</b></span></li>
+<li class="chapter" data-level="1" data-path="csimd.html"><a href="csimd.html"><i class="fa fa-check"></i><b>1</b> SIMD 和 SSE/AVX</a><ul>
+<li class="chapter" data-level="1.1" data-path="csimd.html"><a href="csimd.html#muladd_base"><i class="fa fa-check"></i><b>1.1</b> 一个简单的程序</a></li>
+<li class="chapter" data-level="1.2" data-path="csimd.html"><a href="csimd.html#csimd_first"><i class="fa fa-check"></i><b>1.2</b> 我的第一个SIMD程序！</a></li>
+<li class="chapter" data-level="1.3" data-path="csimd.html"><a href="csimd.html#csimd_reg"><i class="fa fa-check"></i><b>1.3</b> 搞个寄存器变量</a></li>
+<li class="chapter" data-level="1.4" data-path="csimd.html"><a href="csimd.html#csimd_asm"><i class="fa fa-check"></i><b>1.4</b> 我比编译器聪明系列</a></li>
+<li class="chapter" data-level="1.5" data-path="csimd.html"><a href="csimd.html#csimd_gccO3"><i class="fa fa-check"></i><b>1.5</b> 编译器比我聪明系列</a></li>
+<li class="chapter" data-level="1.6" data-path="csimd.html"><a href="csimd.html#csimd_sum"><i class="fa fa-check"></i><b>1.6</b> 本章小结</a></li>
+<li class="chapter" data-level="1.7" data-path="csimd.html"><a href="csimd.html#csimd_add"><i class="fa fa-check"></i><b>1.7</b> 补充内容</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="cmt.html"><a href="cmt.html"><i class="fa fa-check"></i><b>2</b> c语言多线程编程</a><ul>
+<li class="chapter" data-level="2.1" data-path="cmt.html"><a href="cmt.html#cmt_muladd"><i class="fa fa-check"></i><b>2.1</b> 还是乘加运算</a></li>
+<li class="chapter" data-level="2.2" data-path="cmt.html"><a href="cmt.html#cmt_sum"><i class="fa fa-check"></i><b>2.2</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="fma.html"><a href="fma.html"><i class="fa fa-check"></i><b>3</b> 第一部分结束语</a></li>
+<li class="part"><span><b>II GPGPU</b></span></li>
+<li class="chapter" data-level="4" data-path="gpuintro.html"><a href="gpuintro.html"><i class="fa fa-check"></i><b>4</b> GPU简介</a><ul>
+<li class="chapter" data-level="4.1" data-path="gpuintro.html"><a href="gpuintro.html#gpu_about"><i class="fa fa-check"></i><b>4.1</b> 图形处理是怎么回事？</a></li>
+<li class="chapter" data-level="4.2" data-path="gpuintro.html"><a href="gpuintro.html#gpu_gpgpu"><i class="fa fa-check"></i><b>4.2</b> 那GPGPU是啥？</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="cuda.html"><a href="cuda.html"><i class="fa fa-check"></i><b>5</b> CUDA</a><ul>
+<li class="chapter" data-level="5.1" data-path="cuda.html"><a href="cuda.html#before_start"><i class="fa fa-check"></i><b>5.1</b> 开始之前</a></li>
+<li class="chapter" data-level="5.2" data-path="cuda.html"><a href="cuda.html#cuda_first"><i class="fa fa-check"></i><b>5.2</b> 我的第一个cuda程序</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="cuda.html"><a href="cuda.html#include-cuda_runtime.h"><i class="fa fa-check"></i><b>5.2.1</b> #include &lt;cuda_runtime.h&gt;</a></li>
+<li class="chapter" data-level="5.2.2" data-path="cuda.html"><a href="cuda.html#global__-void-muladd"><i class="fa fa-check"></i><b>5.2.2</b> <code>__global__ void muladd</code></a></li>
+<li class="chapter" data-level="5.2.3" data-path="cuda.html"><a href="cuda.html#blockidxblockdim和threadidx"><i class="fa fa-check"></i><b>5.2.3</b> <code>blockIdx</code>,<code>blockDim</code>和<code>threadIdx</code></a></li>
+<li class="chapter" data-level="5.2.4" data-path="cuda.html"><a href="cuda.html#cudamalloc"><i class="fa fa-check"></i><b>5.2.4</b> <code>cudaMalloc</code></a></li>
+<li class="chapter" data-level="5.2.5" data-path="cuda.html"><a href="cuda.html#cudamemcpy"><i class="fa fa-check"></i><b>5.2.5</b> <code>cudaMemcpy</code></a></li>
+<li class="chapter" data-level="5.2.6" data-path="cuda.html"><a href="cuda.html#section"><i class="fa fa-check"></i><b>5.2.6</b> <code>&lt;&lt;&lt;32, 256&gt;&gt;&gt;</code></a></li>
+<li class="chapter" data-level="5.2.7" data-path="cuda.html"><a href="cuda.html#cudafree"><i class="fa fa-check"></i><b>5.2.7</b> <code>cudaFree</code></a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="cuda.html"><a href="cuda.html#cuda新增类型"><i class="fa fa-check"></i><b>5.3</b> CUDA新增类型</a></li>
+<li class="chapter" data-level="5.4" data-path="cuda.html"><a href="cuda.html#cuda_device"><i class="fa fa-check"></i><b>5.4</b> 使用<code>__device__</code>函数</a></li>
+<li class="chapter" data-level="5.5" data-path="cuda.html"><a href="cuda.html#cuda_shared"><i class="fa fa-check"></i><b>5.5</b> 生成动态链接库</a><ul>
+<li class="chapter" data-level="5.5.1" data-path="cuda.html"><a href="cuda.html#用c做一个动态链接库"><i class="fa fa-check"></i><b>5.5.1</b> 用c++做一个动态链接库</a></li>
+<li class="chapter" data-level="5.5.2" data-path="cuda.html"><a href="cuda.html#生成cuda的动态链接库"><i class="fa fa-check"></i><b>5.5.2</b> 生成cuda的动态链接库</a></li>
+<li class="chapter" data-level="5.5.3" data-path="cuda.html"><a href="cuda.html#使用动态链接库"><i class="fa fa-check"></i><b>5.5.3</b> 使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.4" data-path="cuda.html"><a href="cuda.html#在root中交互地使用动态链接库"><i class="fa fa-check"></i><b>5.5.4</b> 在root中交互地使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.5" data-path="cuda.html"><a href="cuda.html#在root中交互地使用cuda的完整例子"><i class="fa fa-check"></i><b>5.5.5</b> 在root中交互地使用cuda的完整例子</a></li>
+<li class="chapter" data-level="5.5.6" data-path="cuda.html"><a href="cuda.html#不支持c的情况"><i class="fa fa-check"></i><b>5.5.6</b> 不支持c++的情况</a></li>
+</ul></li>
+<li class="chapter" data-level="5.6" data-path="cuda.html"><a href="cuda.html#cudabase_sum"><i class="fa fa-check"></i><b>5.6</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="cuda-adv.html"><a href="cuda-adv.html"><i class="fa fa-check"></i><b>6</b> CUDA高级优化技巧</a><ul>
+<li class="chapter" data-level="6.1" data-path="cuda-adv.html"><a href="cuda-adv.html#纹理和纹理内存"><i class="fa fa-check"></i><b>6.1</b> 纹理和纹理内存</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="cuda-adv.html"><a href="cuda-adv.html#什么是纹理"><i class="fa fa-check"></i><b>6.1.1</b> 什么是纹理？</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cuda-adv.html"><a href="cuda-adv.html#cuda纹理的寻址模式和线性插值"><i class="fa fa-check"></i><b>6.1.2</b> CUDA纹理的寻址模式和线性插值</a></li>
+<li class="chapter" data-level="6.1.3" data-path="cuda-adv.html"><a href="cuda-adv.html#举一个例子"><i class="fa fa-check"></i><b>6.1.3</b> 举一个例子</a></li>
+<li class="chapter" data-level="6.1.4" data-path="cuda-adv.html"><a href="cuda-adv.html#如何实现双精度纹理"><i class="fa fa-check"></i><b>6.1.4</b> 如何实现双精度纹理</a></li>
+<li class="chapter" data-level="6.1.5" data-path="cuda-adv.html"><a href="cuda-adv.html#所以为什么要用纹理"><i class="fa fa-check"></i><b>6.1.5</b> 所以为什么要用纹理？</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cuda-adv.html"><a href="cuda-adv.html#流"><i class="fa fa-check"></i><b>6.2</b> 流</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="cuda-adv.html"><a href="cuda-adv.html#举个例子"><i class="fa fa-check"></i><b>6.2.1</b> 举个例子</a></li>
+<li class="chapter" data-level="6.2.2" data-path="cuda-adv.html"><a href="cuda-adv.html#回调"><i class="fa fa-check"></i><b>6.2.2</b> 回调</a></li>
+<li class="chapter" data-level="6.2.3" data-path="cuda-adv.html"><a href="cuda-adv.html#什么时候要使用流"><i class="fa fa-check"></i><b>6.2.3</b> 什么时候要使用流</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="cuda-adv.html"><a href="cuda-adv.html#缓存和共享内存的分配"><i class="fa fa-check"></i><b>6.3</b> 缓存和共享内存的分配</a></li>
+<li class="chapter" data-level="6.4" data-path="cuda-adv.html"><a href="cuda-adv.html#cuadv_sum"><i class="fa fa-check"></i><b>6.4</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="nsight.html"><a href="nsight.html"><i class="fa fa-check"></i><b>7</b> 使用Nsight优化程序</a><ul>
+<li class="chapter" data-level="7.1" data-path="nsight.html"><a href="nsight.html#下载和安装"><i class="fa fa-check"></i><b>7.1</b> 下载和安装</a></li>
+<li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
+<li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
+<li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+</ul></li>
+<li class="appendix"><span><b>附录</b></span></li>
+<li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
+<li class="chapter" data-level="A.1" data-path="assemble.html"><a href="assemble.html#基本操作"><i class="fa fa-check"></i><b>A.1</b> 基本操作</a></li>
+<li class="chapter" data-level="A.2" data-path="assemble.html"><a href="assemble.html#神奇的装载有效地址"><i class="fa fa-check"></i><b>A.2</b> 神奇的“装载有效地址”</a></li>
+<li class="chapter" data-level="A.3" data-path="assemble.html"><a href="assemble.html#c语言中的内联汇编"><i class="fa fa-check"></i><b>A.3</b> c语言中的内联汇编</a></li>
+</ul></li>
+<li class="chapter" data-level="B" data-path="float.html"><a href="float.html"><i class="fa fa-check"></i><b>B</b> 浮点数的计算机表示</a><ul>
+<li class="chapter" data-level="B.1" data-path="float.html"><a href="float.html#单精度浮点数"><i class="fa fa-check"></i><b>B.1</b> 单精度浮点数</a><ul>
+<li class="chapter" data-level="B.1.1" data-path="float.html"><a href="float.html#规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.1</b> 规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.2" data-path="float.html"><a href="float.html#非规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.2</b> 非规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.3" data-path="float.html"><a href="float.html#特殊值"><i class="fa fa-check"></i><b>B.1.3</b> 特殊值</a></li>
+</ul></li>
+<li class="chapter" data-level="B.2" data-path="float.html"><a href="float.html#双精度浮点数和半精度浮点数"><i class="fa fa-check"></i><b>B.2</b> 双精度浮点数和半精度浮点数</a></li>
+</ul></li>
+<li class="chapter" data-level="C" data-path="cache.html"><a href="cache.html"><i class="fa fa-check"></i><b>C</b> 高速缓存</a><ul>
+<li class="chapter" data-level="C.1" data-path="cache.html"><a href="cache.html#局部性原理"><i class="fa fa-check"></i><b>C.1</b> 局部性原理</a></li>
+<li class="chapter" data-level="C.2" data-path="cache.html"><a href="cache.html#缓存的组态"><i class="fa fa-check"></i><b>C.2</b> 缓存的组态</a></li>
+<li class="chapter" data-level="C.3" data-path="cache.html"><a href="cache.html#缓存优化"><i class="fa fa-check"></i><b>C.3</b> 缓存优化</a></li>
+<li class="chapter" data-level="C.4" data-path="cache.html"><a href="cache.html#如何查看cpu的缓存组态"><i class="fa fa-check"></i><b>C.4</b> 如何查看cpu的缓存组态</a></li>
+<li class="chapter" data-level="C.5" data-path="cache.html"><a href="cache.html#感受一下缓存不命中"><i class="fa fa-check"></i><b>C.5</b> 感受一下缓存不命中</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>参考文献</a></li>
+<li class="divider"></li>
+<li><a href="https://bookdown.org" target="blank">本书由 bookdown 强力驱动</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">x40并行编程指南</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="cache" class="section level1">
+<h1><span class="header-section-number">C</span> 高速缓存</h1>
+<p>在古代，是没有高速缓存的说法的，cpu直接和内存通信。后来cpu越来越快，内存却跟不上cpu的速度了，于是人们设计了高速缓存。高速缓存离cpu更近，也就有了比内存更快的速度，然而高速缓存比较昂贵，因此空间非常有限。</p>
+<p>现代的cpu一般有多级缓存，一级缓存比二级缓存快但比二级缓存小，二级缓存比三级缓存快但比三级缓存小，这样。这里按照最简单和原始的情况，也就是只有一级缓存的情况来描述缓存的性质。</p>
+<p>对于程序来说，缓存是“透明”的，也就是说程序是感受不到缓存的存在的，所有的内存访问看起来都像是直接访问了内存。这种特性使得编程变得很容易，但是如果要针对缓存使用进行优化则变得比较困难。</p>
+<div id="局部性原理" class="section level2">
+<h2><span class="header-section-number">C.1</span> 局部性原理</h2>
+<p>局部性原理有两种形式：时间局部性和空间局部性。</p>
+<p>时间局部性：一个程序具有良好的时间局部性的话，被引用过一次的存储器位置很有可能在<strong>不久</strong>的将来再次被引用。</p>
+<p>空间局部性：一个程序具有良好的空间局部性的话，被引用过一次的存储器位置<strong>附近</strong>的位置很有可能在不久的将来被引用。</p>
+<p>具有良好局部性的程序可以最大程度地利用缓存的特性。局部性原理和高速缓存好像有点像鸡和蛋的关系。</p>
+</div>
+<div id="缓存的组态" class="section level2">
+<h2><span class="header-section-number">C.2</span> 缓存的组态</h2>
+<p>缓存是分成许多<strong><em>组</em></strong>的，每一组又包含一些<strong><em>行</em></strong>，每一个行有一个由若干字节组成的块。每个行里还包含一个标记。</p>
+<p>假设我们的缓存一共有<span class="math inline">\(S=2^s\)</span>组（组的数目一定是2的某次方），每个组有<span class="math inline">\(E\)</span>行，每一行包含<span class="math inline">\(B=2^b\)</span>字节（B也一定是2的某次方）。然后设计算机的所能给出的地址共M位（比如在32位系统里<span class="math inline">\(M=32\)</span>），一条地址就按照下图分成三部分</p>
+<div class="figure"><span id="fig:fig4"></span>
+<img src="figs/cache.svg" alt="内存地址和缓存的对应" width="90%" />
+<p class="caption">
+图 C.1: 内存地址和缓存的对应
+</p>
+</div>
+<p>每次访问一个地址的时候，cpu会根据地址的组索引部分去找缓存中相应的组，然后讲标记部分和组里每一行的标记做对比，如果一致那么将直接读取缓存中的数据，避免访问内存。如果这一组所有的行的标记都与地址的标记不同，将会从这一组中消去一行，然后把目标内存缓存进来。（每次会缓存<span class="math inline">\(2^b\)</span>字节。也就是这一组标志和索引对应的所有内存内容）。</p>
+<p>注意到偏移量是<span class="math inline">\(b\)</span>，而缓存的每一行中有<span class="math inline">\(2^b\)</span>个字节，cpu会根据这个偏移量去缓存中找对应的字节。</p>
+<p>关于缓存不命中的时候到底要消去缓存组中的哪一行，有各种不同的设计，比如随机消去一行，或者把最后一次使用时间最远的消去，或者把访问量最小的一行消去等等。</p>
+</div>
+<div id="缓存优化" class="section level2">
+<h2><span class="header-section-number">C.3</span> 缓存优化</h2>
+<p>举个例子，在操作比较大的矩阵的时候，假设矩阵是按照行存储的（<span class="math inline">\(address = col + row \times max\_col\)</span>），那么按照先行后列的方式访问可能会获得更快的速度。</p>
+<p>在某些情况下，如果更加精细地设计一些，也许可以在每一行后面增加一些无意义的字节，来提高缓存命中的概率（比如需要交替访问多行，使得访问后面的行的时候不要消除前面行的缓存内容）。</p>
+</div>
+<div id="如何查看cpu的缓存组态" class="section level2">
+<h2><span class="header-section-number">C.4</span> 如何查看cpu的缓存组态</h2>
+<ul>
+<li>查看L1缓存有多少组：</li>
+</ul>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="cache.html#cb37-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/number_of_sets</span></code></pre></div>
+<p>上面<code>cpu0</code>表示第一个cpu，服务器上<code>/sys/devices/system/cpu/</code>下会有96个cpu。不要担心，它们的缓存参数是一致的。<code>index0</code>表示该cpu里面的第一个缓存。经实验，<code>index0</code>和<code>index1</code>是一级缓存，分别是数据和指令缓存；<code>index2</code>是二级缓存；<code>index3</code>是三级缓存。二级和三级缓存都是部分数据/指令的。</p>
+<ul>
+<li>查看每一组有多少行：</li>
+</ul>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="cache.html#cb38-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/ways_of_associativity</span></code></pre></div>
+<ul>
+<li>查看每一行有多少字节：</li>
+</ul>
+<div class="sourceCode" id="cb39"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="cache.html#cb39-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size</span></code></pre></div>
+<ul>
+<li>查看缓存的大小</li>
+</ul>
+<div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="cache.html#cb40-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/size</span></code></pre></div>
+<p>其实也可以算出来。上面每一行字节数乘以每一组行数再乘以组数即可。</p>
+<ul>
+<li>其他信息也都在同意目录下，可以自行探索一下。</li>
+</ul>
+</div>
+<div id="感受一下缓存不命中" class="section level2">
+<h2><span class="header-section-number">C.5</span> 感受一下缓存不命中</h2>
+<p>还是请回我们的muladd程序。据查，我们的cpu的一级数据缓存每一行有64个字节。已知每个double占8个字节，也就是说我们的一行缓存最多可以缓存8个双精度浮点数（如果它们在内存里是对齐到8字节的话（一般来说的确是这么对齐的））。这回我们每次跳跃地进行计算，每次加8，来尝试使得缓存无法命中：</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb41-1"><a href="cache.html#cb41-1"></a>__attribute__ ((noinline))</span>
+<span id="cb41-2"><a href="cache.html#cb41-2"></a><span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">double</span>* d,</span>
+<span id="cb41-3"><a href="cache.html#cb41-3"></a>            <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
+<span id="cb41-4"><a href="cache.html#cb41-4"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i,j;</span>
+<span id="cb41-5"><a href="cache.html#cb41-5"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8</span>; i++){</span>
+<span id="cb41-6"><a href="cache.html#cb41-6"></a>        <span class="cf">for</span>(j = i; j &lt; N; j+=<span class="dv">8</span>){</span>
+<span id="cb41-7"><a href="cache.html#cb41-7"></a>            d[j] = a[j] * b[j] + c[j];</span>
+<span id="cb41-8"><a href="cache.html#cb41-8"></a>        }</span>
+<span id="cb41-9"><a href="cache.html#cb41-9"></a>    }</span>
+<span id="cb41-10"><a href="cache.html#cb41-10"></a>}</span></code></pre></div>
+<p>根据上一节的命令，我们查到CPU的一级缓存是32kB，也就是说最多可以存储4096个double，所有无论如何，这些数字是不可能全部缓存起来的。（这也是最开始为什么选择了8192作为数组维度）。</p>
+<p>显然，这个函数也是一样对每组a[i]，b[i]，c[i]进行一次计算。编译并运行，可以发现原来耗时约20s的程序，现在需要30s。</p>
+<p>二级缓存和三级缓存相对空间要大一些，而且是数据和指令共用的，一般就不对它们进行优化了（吧？）。</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="float.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="references.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yihui/bookdown-chinese/edit/master/07-append.Rmd",
+"text": "编辑"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["bookdown.pdf", "bookdown.epub"],
+"toc": {
+"collapse": "none"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

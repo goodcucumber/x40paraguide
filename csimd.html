@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>第 1 章 SIMD 和 SSE/AVX | x40并行编程指南</title>
+  <meta name="description" content="在x40服务器上并行运算" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="第 1 章 SIMD 和 SSE/AVX | x40并行编程指南" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="在x40服务器上并行运算" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="第 1 章 SIMD 和 SSE/AVX | x40并行编程指南" />
+  
+  <meta name="twitter:description" content="在x40服务器上并行运算" />
+  
+
+<meta name="author" content="cucumber" />
+
+
+<meta name="date" content="2020-09-16" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="x40.html"/>
+<link rel="next" href="cmt.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css\style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">x40并行编程指南</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>前言</a><ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#致谢"><i class="fa fa-check"></i>致谢</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="author.html"><a href="author.html"><i class="fa fa-check"></i>作者简介</a></li>
+<li class="chapter" data-level="" data-path="x40.html"><a href="x40.html"><i class="fa fa-check"></i>x40服务器</a><ul>
+<li class="chapter" data-level="0.1" data-path="x40.html"><a href="x40.html#基本硬件信息"><i class="fa fa-check"></i><b>0.1</b> 基本硬件信息</a></li>
+</ul></li>
+<li class="part"><span><b>I c语言并行编程</b></span></li>
+<li class="chapter" data-level="1" data-path="csimd.html"><a href="csimd.html"><i class="fa fa-check"></i><b>1</b> SIMD 和 SSE/AVX</a><ul>
+<li class="chapter" data-level="1.1" data-path="csimd.html"><a href="csimd.html#muladd_base"><i class="fa fa-check"></i><b>1.1</b> 一个简单的程序</a></li>
+<li class="chapter" data-level="1.2" data-path="csimd.html"><a href="csimd.html#csimd_first"><i class="fa fa-check"></i><b>1.2</b> 我的第一个SIMD程序！</a></li>
+<li class="chapter" data-level="1.3" data-path="csimd.html"><a href="csimd.html#csimd_reg"><i class="fa fa-check"></i><b>1.3</b> 搞个寄存器变量</a></li>
+<li class="chapter" data-level="1.4" data-path="csimd.html"><a href="csimd.html#csimd_asm"><i class="fa fa-check"></i><b>1.4</b> 我比编译器聪明系列</a></li>
+<li class="chapter" data-level="1.5" data-path="csimd.html"><a href="csimd.html#csimd_gccO3"><i class="fa fa-check"></i><b>1.5</b> 编译器比我聪明系列</a></li>
+<li class="chapter" data-level="1.6" data-path="csimd.html"><a href="csimd.html#csimd_sum"><i class="fa fa-check"></i><b>1.6</b> 本章小结</a></li>
+<li class="chapter" data-level="1.7" data-path="csimd.html"><a href="csimd.html#csimd_add"><i class="fa fa-check"></i><b>1.7</b> 补充内容</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="cmt.html"><a href="cmt.html"><i class="fa fa-check"></i><b>2</b> c语言多线程编程</a><ul>
+<li class="chapter" data-level="2.1" data-path="cmt.html"><a href="cmt.html#cmt_muladd"><i class="fa fa-check"></i><b>2.1</b> 还是乘加运算</a></li>
+<li class="chapter" data-level="2.2" data-path="cmt.html"><a href="cmt.html#cmt_sum"><i class="fa fa-check"></i><b>2.2</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="fma.html"><a href="fma.html"><i class="fa fa-check"></i><b>3</b> 第一部分结束语</a></li>
+<li class="part"><span><b>II GPGPU</b></span></li>
+<li class="chapter" data-level="4" data-path="gpuintro.html"><a href="gpuintro.html"><i class="fa fa-check"></i><b>4</b> GPU简介</a><ul>
+<li class="chapter" data-level="4.1" data-path="gpuintro.html"><a href="gpuintro.html#gpu_about"><i class="fa fa-check"></i><b>4.1</b> 图形处理是怎么回事？</a></li>
+<li class="chapter" data-level="4.2" data-path="gpuintro.html"><a href="gpuintro.html#gpu_gpgpu"><i class="fa fa-check"></i><b>4.2</b> 那GPGPU是啥？</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="cuda.html"><a href="cuda.html"><i class="fa fa-check"></i><b>5</b> CUDA</a><ul>
+<li class="chapter" data-level="5.1" data-path="cuda.html"><a href="cuda.html#before_start"><i class="fa fa-check"></i><b>5.1</b> 开始之前</a></li>
+<li class="chapter" data-level="5.2" data-path="cuda.html"><a href="cuda.html#cuda_first"><i class="fa fa-check"></i><b>5.2</b> 我的第一个cuda程序</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="cuda.html"><a href="cuda.html#include-cuda_runtime.h"><i class="fa fa-check"></i><b>5.2.1</b> #include &lt;cuda_runtime.h&gt;</a></li>
+<li class="chapter" data-level="5.2.2" data-path="cuda.html"><a href="cuda.html#global__-void-muladd"><i class="fa fa-check"></i><b>5.2.2</b> <code>__global__ void muladd</code></a></li>
+<li class="chapter" data-level="5.2.3" data-path="cuda.html"><a href="cuda.html#blockidxblockdim和threadidx"><i class="fa fa-check"></i><b>5.2.3</b> <code>blockIdx</code>,<code>blockDim</code>和<code>threadIdx</code></a></li>
+<li class="chapter" data-level="5.2.4" data-path="cuda.html"><a href="cuda.html#cudamalloc"><i class="fa fa-check"></i><b>5.2.4</b> <code>cudaMalloc</code></a></li>
+<li class="chapter" data-level="5.2.5" data-path="cuda.html"><a href="cuda.html#cudamemcpy"><i class="fa fa-check"></i><b>5.2.5</b> <code>cudaMemcpy</code></a></li>
+<li class="chapter" data-level="5.2.6" data-path="cuda.html"><a href="cuda.html#section"><i class="fa fa-check"></i><b>5.2.6</b> <code>&lt;&lt;&lt;32, 256&gt;&gt;&gt;</code></a></li>
+<li class="chapter" data-level="5.2.7" data-path="cuda.html"><a href="cuda.html#cudafree"><i class="fa fa-check"></i><b>5.2.7</b> <code>cudaFree</code></a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="cuda.html"><a href="cuda.html#cuda新增类型"><i class="fa fa-check"></i><b>5.3</b> CUDA新增类型</a></li>
+<li class="chapter" data-level="5.4" data-path="cuda.html"><a href="cuda.html#cuda_device"><i class="fa fa-check"></i><b>5.4</b> 使用<code>__device__</code>函数</a></li>
+<li class="chapter" data-level="5.5" data-path="cuda.html"><a href="cuda.html#cuda_shared"><i class="fa fa-check"></i><b>5.5</b> 生成动态链接库</a><ul>
+<li class="chapter" data-level="5.5.1" data-path="cuda.html"><a href="cuda.html#用c做一个动态链接库"><i class="fa fa-check"></i><b>5.5.1</b> 用c++做一个动态链接库</a></li>
+<li class="chapter" data-level="5.5.2" data-path="cuda.html"><a href="cuda.html#生成cuda的动态链接库"><i class="fa fa-check"></i><b>5.5.2</b> 生成cuda的动态链接库</a></li>
+<li class="chapter" data-level="5.5.3" data-path="cuda.html"><a href="cuda.html#使用动态链接库"><i class="fa fa-check"></i><b>5.5.3</b> 使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.4" data-path="cuda.html"><a href="cuda.html#在root中交互地使用动态链接库"><i class="fa fa-check"></i><b>5.5.4</b> 在root中交互地使用动态链接库</a></li>
+<li class="chapter" data-level="5.5.5" data-path="cuda.html"><a href="cuda.html#在root中交互地使用cuda的完整例子"><i class="fa fa-check"></i><b>5.5.5</b> 在root中交互地使用cuda的完整例子</a></li>
+<li class="chapter" data-level="5.5.6" data-path="cuda.html"><a href="cuda.html#不支持c的情况"><i class="fa fa-check"></i><b>5.5.6</b> 不支持c++的情况</a></li>
+</ul></li>
+<li class="chapter" data-level="5.6" data-path="cuda.html"><a href="cuda.html#cudabase_sum"><i class="fa fa-check"></i><b>5.6</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="cuda-adv.html"><a href="cuda-adv.html"><i class="fa fa-check"></i><b>6</b> CUDA高级优化技巧</a><ul>
+<li class="chapter" data-level="6.1" data-path="cuda-adv.html"><a href="cuda-adv.html#纹理和纹理内存"><i class="fa fa-check"></i><b>6.1</b> 纹理和纹理内存</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="cuda-adv.html"><a href="cuda-adv.html#什么是纹理"><i class="fa fa-check"></i><b>6.1.1</b> 什么是纹理？</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cuda-adv.html"><a href="cuda-adv.html#cuda纹理的寻址模式和线性插值"><i class="fa fa-check"></i><b>6.1.2</b> CUDA纹理的寻址模式和线性插值</a></li>
+<li class="chapter" data-level="6.1.3" data-path="cuda-adv.html"><a href="cuda-adv.html#举一个例子"><i class="fa fa-check"></i><b>6.1.3</b> 举一个例子</a></li>
+<li class="chapter" data-level="6.1.4" data-path="cuda-adv.html"><a href="cuda-adv.html#如何实现双精度纹理"><i class="fa fa-check"></i><b>6.1.4</b> 如何实现双精度纹理</a></li>
+<li class="chapter" data-level="6.1.5" data-path="cuda-adv.html"><a href="cuda-adv.html#所以为什么要用纹理"><i class="fa fa-check"></i><b>6.1.5</b> 所以为什么要用纹理？</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cuda-adv.html"><a href="cuda-adv.html#流"><i class="fa fa-check"></i><b>6.2</b> 流</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="cuda-adv.html"><a href="cuda-adv.html#举个例子"><i class="fa fa-check"></i><b>6.2.1</b> 举个例子</a></li>
+<li class="chapter" data-level="6.2.2" data-path="cuda-adv.html"><a href="cuda-adv.html#回调"><i class="fa fa-check"></i><b>6.2.2</b> 回调</a></li>
+<li class="chapter" data-level="6.2.3" data-path="cuda-adv.html"><a href="cuda-adv.html#什么时候要使用流"><i class="fa fa-check"></i><b>6.2.3</b> 什么时候要使用流</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="cuda-adv.html"><a href="cuda-adv.html#缓存和共享内存的分配"><i class="fa fa-check"></i><b>6.3</b> 缓存和共享内存的分配</a></li>
+<li class="chapter" data-level="6.4" data-path="cuda-adv.html"><a href="cuda-adv.html#cuadv_sum"><i class="fa fa-check"></i><b>6.4</b> 本章小结</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="nsight.html"><a href="nsight.html"><i class="fa fa-check"></i><b>7</b> 使用Nsight优化程序</a><ul>
+<li class="chapter" data-level="7.1" data-path="nsight.html"><a href="nsight.html#下载和安装"><i class="fa fa-check"></i><b>7.1</b> 下载和安装</a></li>
+<li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
+<li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
+<li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+</ul></li>
+<li class="appendix"><span><b>附录</b></span></li>
+<li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
+<li class="chapter" data-level="A.1" data-path="assemble.html"><a href="assemble.html#基本操作"><i class="fa fa-check"></i><b>A.1</b> 基本操作</a></li>
+<li class="chapter" data-level="A.2" data-path="assemble.html"><a href="assemble.html#神奇的装载有效地址"><i class="fa fa-check"></i><b>A.2</b> 神奇的“装载有效地址”</a></li>
+<li class="chapter" data-level="A.3" data-path="assemble.html"><a href="assemble.html#c语言中的内联汇编"><i class="fa fa-check"></i><b>A.3</b> c语言中的内联汇编</a></li>
+</ul></li>
+<li class="chapter" data-level="B" data-path="float.html"><a href="float.html"><i class="fa fa-check"></i><b>B</b> 浮点数的计算机表示</a><ul>
+<li class="chapter" data-level="B.1" data-path="float.html"><a href="float.html#单精度浮点数"><i class="fa fa-check"></i><b>B.1</b> 单精度浮点数</a><ul>
+<li class="chapter" data-level="B.1.1" data-path="float.html"><a href="float.html#规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.1</b> 规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.2" data-path="float.html"><a href="float.html#非规格化的单精度浮点数"><i class="fa fa-check"></i><b>B.1.2</b> 非规格化的单精度浮点数</a></li>
+<li class="chapter" data-level="B.1.3" data-path="float.html"><a href="float.html#特殊值"><i class="fa fa-check"></i><b>B.1.3</b> 特殊值</a></li>
+</ul></li>
+<li class="chapter" data-level="B.2" data-path="float.html"><a href="float.html#双精度浮点数和半精度浮点数"><i class="fa fa-check"></i><b>B.2</b> 双精度浮点数和半精度浮点数</a></li>
+</ul></li>
+<li class="chapter" data-level="C" data-path="cache.html"><a href="cache.html"><i class="fa fa-check"></i><b>C</b> 高速缓存</a><ul>
+<li class="chapter" data-level="C.1" data-path="cache.html"><a href="cache.html#局部性原理"><i class="fa fa-check"></i><b>C.1</b> 局部性原理</a></li>
+<li class="chapter" data-level="C.2" data-path="cache.html"><a href="cache.html#缓存的组态"><i class="fa fa-check"></i><b>C.2</b> 缓存的组态</a></li>
+<li class="chapter" data-level="C.3" data-path="cache.html"><a href="cache.html#缓存优化"><i class="fa fa-check"></i><b>C.3</b> 缓存优化</a></li>
+<li class="chapter" data-level="C.4" data-path="cache.html"><a href="cache.html#如何查看cpu的缓存组态"><i class="fa fa-check"></i><b>C.4</b> 如何查看cpu的缓存组态</a></li>
+<li class="chapter" data-level="C.5" data-path="cache.html"><a href="cache.html#感受一下缓存不命中"><i class="fa fa-check"></i><b>C.5</b> 感受一下缓存不命中</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>参考文献</a></li>
+<li class="divider"></li>
+<li><a href="https://bookdown.org" target="blank">本书由 bookdown 强力驱动</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">x40并行编程指南</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="csimd" class="section level1">
+<h1><span class="header-section-number">第 1 章</span> SIMD 和 SSE/AVX</h1>
+<p>SIMD (Single Instruction, Multiple Data)，即单指令多数据，顾名思义，是通过一条指令对多条数据进行同时操作。据维基百科说，最早得到广泛应用的SIMD指令集是Intel的MMX指令集，共包含57条指令。MMX提供了8个64位的寄存器(MM0 - MM7)，每个寄存器可以存放两个32位整数或4个16位整数或8个8位整数，寄存器中“打包”的多个数据可以通过一条指令同时处理，不再需要分成几次分别处理。</p>
+<blockquote>
+<p>例如做8个8位整数加法(c[i] = a[i] + b[i]. i ∈ {0,1,…,7})。</p>
+<blockquote>
+<p>标量算法流程：<br />
+i = 0<br />
+将a[i]读入寄存器0<br />
+将b[i]读入寄存器1<br />
+对寄存器0和1内的8位整数求和并将结果存储在寄存器0中<br />
+将寄存器0中的八位整数写入c[i]的内存位置<br />
+i = i+1<br />
+比较i和8<br />
+如果小于则重复以上步骤</p>
+</blockquote>
+<blockquote>
+<p>矢量算法流程：<br />
+将a[0-7]读入矢量寄存器0<br />
+将b[0-7]读入矢量寄存器1<br />
+对矢量寄存器0和1按照8位一个整数同时求和，结果存储在矢量寄存器0中<br />
+将适量寄存器0中的64位数据写入c的内存位置</p>
+</blockquote>
+</blockquote>
+<p>如上例，对于8位整数的加法，理论上最大可以有8倍的提速。</p>
+<p>之后，SSE出现了，提供了8个128位寄存器(XMM0 - XMM7)，并且有了处理浮点数的能力。可以同时处理两个双精度浮点数或四个单精度浮点数，或者同时处理四个32位整数或者八个16位整数又或者十六个8位整数。</p>
+<p>再后来，又升级了AVX。AVX将SSE的每个128位寄存器扩展到256位，并增加了8个256寄存器。16个256位寄存器称作(YMM0 - YMM15)。再后来Intel又推出了AVX512，把YMM扩展到512位，又新增16个寄存器，共32个512位寄存器(ZMM0 - ZMM31)。(前几天Linus还怒斥了Intel的AVX512🤣)</p>
+<p>x40服务器是支持AVX512的，但是本指南不介绍AVX512使用方法(主要是因为我也没用过)。但是原则上与AVX大同小异。而且，大概率您正在使用的桌面电脑或笔记本电脑也支持AVX指令集，但不大可能支持AVX512，因此本章的代码您可以在自己的电脑上运行/测试。</p>
+<div id="muladd_base" class="section level2">
+<h2><span class="header-section-number">1.1</span> 一个简单的程序</h2>
+<blockquote>
+<p><em>単純な馬鹿にありたい。——『日常』</em></p>
+</blockquote>
+<p>为便于演示SIMD并比较速度，我们创建一个非常非常简单的程序：拿三个double数组，第一组乘上第二组再加上第三组，结果存储在第四个数组中。想必各位读者都能很快实现这样的算法。下面列出本指南使用的程序（后续章节会基于这个程序进行改造）。为了加大处理压力，使运行时间可以观测到，这里强行让程序算1,000,000遍。可以在输出中看到计算耗时在10s左右。在输出运行时间后，挑出一些结果来对照一下看看对不对（嗯，在这个程序里上面和下面一毛一样，怎么会不对呢！）</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="csimd.html#cb1-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb1-2"><a href="csimd.html#cb1-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb1-3"><a href="csimd.html#cb1-3"></a><span class="pp">#include </span><span class="im">&lt;time.h&gt;</span></span>
+<span id="cb1-4"><a href="csimd.html#cb1-4"></a></span>
+<span id="cb1-5"><a href="csimd.html#cb1-5"></a>__attribute__ ((noinline))</span>
+<span id="cb1-6"><a href="csimd.html#cb1-6"></a><span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c,</span>
+<span id="cb1-7"><a href="csimd.html#cb1-7"></a>            <span class="dt">double</span>* d, <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
+<span id="cb1-8"><a href="csimd.html#cb1-8"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb1-9"><a href="csimd.html#cb1-9"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; N; i++){</span>
+<span id="cb1-10"><a href="csimd.html#cb1-10"></a>        d[i] = a[i] * b[i] + c[i];</span>
+<span id="cb1-11"><a href="csimd.html#cb1-11"></a>    }</span>
+<span id="cb1-12"><a href="csimd.html#cb1-12"></a>}</span>
+<span id="cb1-13"><a href="csimd.html#cb1-13"></a></span>
+<span id="cb1-14"><a href="csimd.html#cb1-14"></a><span class="dt">int</span> main(){</span>
+<span id="cb1-15"><a href="csimd.html#cb1-15"></a>    <span class="dt">double</span>* a; </span>
+<span id="cb1-16"><a href="csimd.html#cb1-16"></a>    <span class="dt">double</span>* b; </span>
+<span id="cb1-17"><a href="csimd.html#cb1-17"></a>    <span class="dt">double</span>* c; </span>
+<span id="cb1-18"><a href="csimd.html#cb1-18"></a>    <span class="dt">double</span>* d;</span>
+<span id="cb1-19"><a href="csimd.html#cb1-19"></a></span>
+<span id="cb1-20"><a href="csimd.html#cb1-20"></a>    a = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb1-21"><a href="csimd.html#cb1-21"></a>    b = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb1-22"><a href="csimd.html#cb1-22"></a>    c = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb1-23"><a href="csimd.html#cb1-23"></a>    d = (<span class="dt">double</span>*)(malloc(<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb1-24"><a href="csimd.html#cb1-24"></a></span>
+<span id="cb1-25"><a href="csimd.html#cb1-25"></a>    <span class="co">//Prepare data</span></span>
+<span id="cb1-26"><a href="csimd.html#cb1-26"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb1-27"><a href="csimd.html#cb1-27"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb1-28"><a href="csimd.html#cb1-28"></a>        a[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb1-29"><a href="csimd.html#cb1-29"></a>        b[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb1-30"><a href="csimd.html#cb1-30"></a>        c[i] = ((<span class="dt">double</span>)i)/<span class="fl">10000.0</span>;</span>
+<span id="cb1-31"><a href="csimd.html#cb1-31"></a>    }</span>
+<span id="cb1-32"><a href="csimd.html#cb1-32"></a>    </span>
+<span id="cb1-33"><a href="csimd.html#cb1-33"></a>    clock_t start, stop;</span>
+<span id="cb1-34"><a href="csimd.html#cb1-34"></a>    <span class="dt">double</span> elapsed;</span>
+<span id="cb1-35"><a href="csimd.html#cb1-35"></a>    start = clock();</span>
+<span id="cb1-36"><a href="csimd.html#cb1-36"></a></span>
+<span id="cb1-37"><a href="csimd.html#cb1-37"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">1000000</span>; i++){</span>
+<span id="cb1-38"><a href="csimd.html#cb1-38"></a>        muladd(a, b, c, d, <span class="dv">8192</span>);</span>
+<span id="cb1-39"><a href="csimd.html#cb1-39"></a>    }</span>
+<span id="cb1-40"><a href="csimd.html#cb1-40"></a></span>
+<span id="cb1-41"><a href="csimd.html#cb1-41"></a>    stop = clock();</span>
+<span id="cb1-42"><a href="csimd.html#cb1-42"></a>    elapsed = (<span class="dt">double</span>)(stop-start) / CLOCKS_PER_SEC;</span>
+<span id="cb1-43"><a href="csimd.html#cb1-43"></a>    printf(<span class="st">&quot;Elapsed time = %8.6f s</span><span class="sc">\n</span><span class="st">&quot;</span>, elapsed);</span>
+<span id="cb1-44"><a href="csimd.html#cb1-44"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb1-45"><a href="csimd.html#cb1-45"></a>        <span class="cf">if</span>(i % <span class="dv">1001</span> == <span class="dv">0</span>){</span>
+<span id="cb1-46"><a href="csimd.html#cb1-46"></a>            printf(<span class="st">&quot;%5llu: %12.8f * %12.8f + %12.8f = %12.8f (%d)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb1-47"><a href="csimd.html#cb1-47"></a>                   i, a[i], b[i], c[i], d[i], d[i]==a[i]*b[i]+c[i]);</span>
+<span id="cb1-48"><a href="csimd.html#cb1-48"></a>        }</span>
+<span id="cb1-49"><a href="csimd.html#cb1-49"></a>    }</span>
+<span id="cb1-50"><a href="csimd.html#cb1-50"></a></span>
+<span id="cb1-51"><a href="csimd.html#cb1-51"></a>    free(a);</span>
+<span id="cb1-52"><a href="csimd.html#cb1-52"></a>    free(b);</span>
+<span id="cb1-53"><a href="csimd.html#cb1-53"></a>    free(c);</span>
+<span id="cb1-54"><a href="csimd.html#cb1-54"></a>    free(d);</span>
+<span id="cb1-55"><a href="csimd.html#cb1-55"></a>}</span></code></pre></div>
+<blockquote>
+<p>关于程序随便提一句。<code>__attribute__ ((noinline))</code>的作用是告诉编译器不要对这个函数inline展开。因为我们的muladd函数比较简单，可能会被编译器优化以后直接在调用处原地展开。虽然这样也没什么不行，但是为了后续分析程序行为，这里加上了这个标志。</p>
+</blockquote>
+<p>编译运行一下，可以看到运算过程花了20s左右。</p>
+</div>
+<div id="csimd_first" class="section level2">
+<h2><span class="header-section-number">1.2</span> 我的第一个SIMD程序！</h2>
+<blockquote>
+<p><em>May the 4s be with you.</em></p>
+</blockquote>
+<p>我们来使用AVX，一次算四个。要显式地使用AVX指令集，可以使用所谓“intrinsic”。这些intrinsic与CPU指令有直接的对应。可以参考<a href="https://software.intel.com/sites/landingpage/IntrinsicsGuide/">Intel Intrinsics Guide</a>。要使用这些intrinsic，需要<code>#include &lt;x86intrin.h&gt;</code>.
+在编译的时候，还要加上<code>-mavx</code></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="csimd.html#cb2-1"></a><span class="fu">gcc</span> -mavx -o muladd_simd muladd_simd.c</span></code></pre></div>
+<p>改造后的程序是这个样子：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="csimd.html#cb3-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb3-2"><a href="csimd.html#cb3-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb3-3"><a href="csimd.html#cb3-3"></a><span class="pp">#include </span><span class="im">&lt;time.h&gt;</span></span>
+<span id="cb3-4"><a href="csimd.html#cb3-4"></a><span class="pp">#include </span><span class="im">&lt;x86intrin.h&gt;</span></span>
+<span id="cb3-5"><a href="csimd.html#cb3-5"></a></span>
+<span id="cb3-6"><a href="csimd.html#cb3-6"></a>__attribute__ ((noinline))</span>
+<span id="cb3-7"><a href="csimd.html#cb3-7"></a><span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c,</span>
+<span id="cb3-8"><a href="csimd.html#cb3-8"></a>            <span class="dt">double</span>* d, <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
+<span id="cb3-9"><a href="csimd.html#cb3-9"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i, j;</span>
+<span id="cb3-10"><a href="csimd.html#cb3-10"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> M = N&gt;&gt;<span class="dv">2</span>;</span>
+<span id="cb3-11"><a href="csimd.html#cb3-11"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; M; i++){</span>
+<span id="cb3-12"><a href="csimd.html#cb3-12"></a>        __m256d ymma = _mm256_load_pd(a+i*<span class="dv">4</span>);</span>
+<span id="cb3-13"><a href="csimd.html#cb3-13"></a>        __m256d ymmb = _mm256_load_pd(b+i*<span class="dv">4</span>);</span>
+<span id="cb3-14"><a href="csimd.html#cb3-14"></a>        __m256d ymmc = _mm256_load_pd(c+i*<span class="dv">4</span>);</span>
+<span id="cb3-15"><a href="csimd.html#cb3-15"></a>        __m256d ymmd = _mm256_mul_pd(ymma, ymmb);</span>
+<span id="cb3-16"><a href="csimd.html#cb3-16"></a>        ymmd = _mm256_add_pd(ymmd, ymmc);</span>
+<span id="cb3-17"><a href="csimd.html#cb3-17"></a>        _mm256_store_pd(d+i*<span class="dv">4</span>,ymmd);</span>
+<span id="cb3-18"><a href="csimd.html#cb3-18"></a>    }</span>
+<span id="cb3-19"><a href="csimd.html#cb3-19"></a>    <span class="cf">for</span>(i = N-N%<span class="dv">4</span>; i &lt; N; i++){</span>
+<span id="cb3-20"><a href="csimd.html#cb3-20"></a>        d[i] = a[i] * b[i] + c[i];</span>
+<span id="cb3-21"><a href="csimd.html#cb3-21"></a>    }</span>
+<span id="cb3-22"><a href="csimd.html#cb3-22"></a>}</span>
+<span id="cb3-23"><a href="csimd.html#cb3-23"></a></span>
+<span id="cb3-24"><a href="csimd.html#cb3-24"></a><span class="dt">int</span> main(){</span>
+<span id="cb3-25"><a href="csimd.html#cb3-25"></a>    <span class="dt">double</span>* a; </span>
+<span id="cb3-26"><a href="csimd.html#cb3-26"></a>    <span class="dt">double</span>* b; </span>
+<span id="cb3-27"><a href="csimd.html#cb3-27"></a>    <span class="dt">double</span>* c; </span>
+<span id="cb3-28"><a href="csimd.html#cb3-28"></a>    <span class="dt">double</span>* d;</span>
+<span id="cb3-29"><a href="csimd.html#cb3-29"></a></span>
+<span id="cb3-30"><a href="csimd.html#cb3-30"></a>    a = (<span class="dt">double</span>*)(aligned_alloc(<span class="dv">32</span>,<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb3-31"><a href="csimd.html#cb3-31"></a>    b = (<span class="dt">double</span>*)(aligned_alloc(<span class="dv">32</span>,<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb3-32"><a href="csimd.html#cb3-32"></a>    c = (<span class="dt">double</span>*)(aligned_alloc(<span class="dv">32</span>,<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb3-33"><a href="csimd.html#cb3-33"></a>    d = (<span class="dt">double</span>*)(aligned_alloc(<span class="dv">32</span>,<span class="dv">8192</span>*<span class="kw">sizeof</span>(<span class="dt">double</span>)));</span>
+<span id="cb3-34"><a href="csimd.html#cb3-34"></a></span>
+<span id="cb3-35"><a href="csimd.html#cb3-35"></a>   <span class="co">//Prepare data</span></span>
+<span id="cb3-36"><a href="csimd.html#cb3-36"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb3-37"><a href="csimd.html#cb3-37"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb3-38"><a href="csimd.html#cb3-38"></a>        a[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb3-39"><a href="csimd.html#cb3-39"></a>        b[i] = (<span class="dt">double</span>)(rand()%<span class="dv">2000</span>) / <span class="fl">200.0</span>;</span>
+<span id="cb3-40"><a href="csimd.html#cb3-40"></a>        c[i] = ((<span class="dt">double</span>)i)/<span class="fl">10000.0</span>;</span>
+<span id="cb3-41"><a href="csimd.html#cb3-41"></a>    }</span>
+<span id="cb3-42"><a href="csimd.html#cb3-42"></a>    </span>
+<span id="cb3-43"><a href="csimd.html#cb3-43"></a>    clock_t start, stop;</span>
+<span id="cb3-44"><a href="csimd.html#cb3-44"></a>    <span class="dt">double</span> elapsed;</span>
+<span id="cb3-45"><a href="csimd.html#cb3-45"></a>    start = clock();</span>
+<span id="cb3-46"><a href="csimd.html#cb3-46"></a>    </span>
+<span id="cb3-47"><a href="csimd.html#cb3-47"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">1000000</span>; i++){</span>
+<span id="cb3-48"><a href="csimd.html#cb3-48"></a>        muladd(a, b, c, d, <span class="dv">8192</span>);</span>
+<span id="cb3-49"><a href="csimd.html#cb3-49"></a>    }</span>
+<span id="cb3-50"><a href="csimd.html#cb3-50"></a></span>
+<span id="cb3-51"><a href="csimd.html#cb3-51"></a>    stop = clock();</span>
+<span id="cb3-52"><a href="csimd.html#cb3-52"></a>    elapsed = (<span class="dt">double</span>)(stop-start) / CLOCKS_PER_SEC;</span>
+<span id="cb3-53"><a href="csimd.html#cb3-53"></a>    printf(<span class="st">&quot;Elapsed time = %8.6f s</span><span class="sc">\n</span><span class="st">&quot;</span>, elapsed);</span>
+<span id="cb3-54"><a href="csimd.html#cb3-54"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8192</span>; i++){</span>
+<span id="cb3-55"><a href="csimd.html#cb3-55"></a>        <span class="cf">if</span>(i % <span class="dv">1001</span> == <span class="dv">0</span>){</span>
+<span id="cb3-56"><a href="csimd.html#cb3-56"></a>            printf(<span class="st">&quot;%5llu: %16.8f * %16.8f + %16.8f = %16.8f (%d)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb3-57"><a href="csimd.html#cb3-57"></a>                   i, a[i], b[i], c[i], d[i], d[i]==a[i]*b[i]+c[i]);</span>
+<span id="cb3-58"><a href="csimd.html#cb3-58"></a>        }</span>
+<span id="cb3-59"><a href="csimd.html#cb3-59"></a>    }</span>
+<span id="cb3-60"><a href="csimd.html#cb3-60"></a></span>
+<span id="cb3-61"><a href="csimd.html#cb3-61"></a>    free(a);</span>
+<span id="cb3-62"><a href="csimd.html#cb3-62"></a>    free(b);</span>
+<span id="cb3-63"><a href="csimd.html#cb3-63"></a>    free(c);</span>
+<span id="cb3-64"><a href="csimd.html#cb3-64"></a>    free(d);</span>
+<span id="cb3-65"><a href="csimd.html#cb3-65"></a>}</span></code></pre></div>
+<blockquote>
+<p>关于这段程序又要提一句。<code>malloc(8192*sizeof(double))</code>换成了<code>aligned_alloc(32, 8192*sizeof(double))</code>. 这是因为<code>_mm256_load_pd</code>要求内存是对齐到256bit的(YMM寄存器的宽度是256bit).<code>aligned_alloc</code>函数可以实现开辟对齐到指定地址的内存空间，第一个参数是对齐方式，单位是字节(Byte)(32Byte × 8bit/byte = 256 bit)。第二个参数是内存大小。要注意第二个参数必须是第一个的整数倍。<br />
+另外，也可以直接<code>malloc</code>，而把<code>_mm256_load_pd</code>替换为<code>_mm256_load_upd</code>. u代表“unaligned”。</p>
+<blockquote>
+<p><em>以下太长不看</em><br />
+读取双精度浮点数据到YMM有两个指令，VMOVAPD 和 VMOVUPD。VMOVAPD要求内存地址是对齐到256位的，而VMOVUPD无此要求。据说在早期的支持AVX的cpu上VMOVAPD要快一些，似乎在新一些的平台上性能已经相当了。（但我没有详细考证过。）以及，<code>_mm256_load_upd</code>似乎并不会被翻译为vmovupd，而是变成了两条指令，大致是先读入两个double，再把另外两个插入进来。emm…</p>
+</blockquote>
+</blockquote>
+<p>赶紧编译运行一下，这回可快了，只要……嗯？要16s？4个double同时算，这提升也太小了吧？咱们看一下编译出来的内容：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="csimd.html#cb4-1"></a>$ <span class="fu">gdb</span> muladd_simd</span>
+<span id="cb4-2"><a href="csimd.html#cb4-2"></a>  <span class="kw">(</span><span class="fu">gdb</span><span class="kw">)</span> <span class="ex">disassemble</span> muladd</span>
+<span id="cb4-3"><a href="csimd.html#cb4-3"></a>  <span class="ex">Dump</span> of assembler code for function muladd:</span>
+<span id="cb4-4"><a href="csimd.html#cb4-4"></a>   <span class="ex">0x0000000000400657</span> <span class="op">&lt;</span>+<span class="op">0&gt;</span>:     lea    0x8(%rsp),<span class="ex">%r10</span></span>
+<span id="cb4-5"><a href="csimd.html#cb4-5"></a>   <span class="ex">0x000000000040065c</span> <span class="op">&lt;</span>+<span class="op">5&gt;</span>:     and    <span class="va">$0</span>xffffffffffffffe0,%rsp</span>
+<span id="cb4-6"><a href="csimd.html#cb4-6"></a>   <span class="ex">0x0000000000400660</span> <span class="op">&lt;</span>+<span class="op">9&gt;</span>:     pushq  -0x8(%r10)</span>
+<span id="cb4-7"><a href="csimd.html#cb4-7"></a>   <span class="ex">0x0000000000400664</span> <span class="op">&lt;</span>+<span class="op">13&gt;</span>:    push   %rbp</span>
+<span id="cb4-8"><a href="csimd.html#cb4-8"></a>   <span class="ex">0x0000000000400665</span> <span class="op">&lt;</span>+<span class="op">14&gt;</span>:    mov    %rsp,%rbp</span>
+<span id="cb4-9"><a href="csimd.html#cb4-9"></a>   <span class="ex">0x0000000000400668</span> <span class="op">&lt;</span>+<span class="op">17&gt;</span>:    push   %r10</span>
+<span id="cb4-10"><a href="csimd.html#cb4-10"></a>   <span class="ex">0x000000000040066a</span> <span class="op">&lt;</span>+<span class="op">19&gt;</span>:    sub    <span class="va">$0</span>x150,%rsp</span>
+<span id="cb4-11"><a href="csimd.html#cb4-11"></a>   <span class="ex">0x0000000000400671</span> <span class="op">&lt;</span>+<span class="op">26&gt;</span>:    mov    %rdi,-0x198(%rbp)</span>
+<span id="cb4-12"><a href="csimd.html#cb4-12"></a>   <span class="ex">0x0000000000400678</span> <span class="op">&lt;</span>+<span class="op">33&gt;</span>:    mov    %rsi,-0x1a0(%rbp)</span>
+<span id="cb4-13"><a href="csimd.html#cb4-13"></a>   <span class="ex">0x000000000040067f</span> <span class="op">&lt;</span>+<span class="op">40&gt;</span>:    mov    %rdx,-0x1a8(%rbp)</span>
+<span id="cb4-14"><a href="csimd.html#cb4-14"></a>   <span class="ex">0x0000000000400686</span> <span class="op">&lt;</span>+<span class="op">47&gt;</span>:    mov    %rcx,-0x1b0(%rbp)</span>
+<span id="cb4-15"><a href="csimd.html#cb4-15"></a>   <span class="ex">0x000000000040068d</span> <span class="op">&lt;</span>+<span class="op">54&gt;</span>:    mov    %r8,-0x1b8(%rbp)</span>
+<span id="cb4-16"><a href="csimd.html#cb4-16"></a>   <span class="ex">0x0000000000400694</span> <span class="op">&lt;</span>+<span class="op">61&gt;</span>:    mov    -0x1b8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-17"><a href="csimd.html#cb4-17"></a>   <span class="ex">0x000000000040069b</span> <span class="op">&lt;</span>+<span class="op">68&gt;</span>:    shr    <span class="va">$0</span>x2,%rax</span>
+<span id="cb4-18"><a href="csimd.html#cb4-18"></a>   <span class="ex">0x000000000040069f</span> <span class="op">&lt;</span>+<span class="op">72&gt;</span>:    mov    %rax,-0x20(%rbp)</span>
+<span id="cb4-19"><a href="csimd.html#cb4-19"></a>   <span class="ex">0x00000000004006a3</span> <span class="op">&lt;</span>+<span class="op">76&gt;</span>:    movq   <span class="va">$0</span>x0,-0x18(%rbp)</span>
+<span id="cb4-20"><a href="csimd.html#cb4-20"></a>   <span class="ex">0x00000000004006ab</span> <span class="op">&lt;</span>+<span class="op">84&gt;</span>:    jmpq   0x4007e5 <span class="op">&lt;</span>muladd+<span class="op">398&gt;</span></span>
+<span id="cb4-21"><a href="csimd.html#cb4-21"></a>   <span class="ex">0x00000000004006b0</span> <span class="op">&lt;</span>+<span class="op">89&gt;</span>:    mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-22"><a href="csimd.html#cb4-22"></a>   <span class="ex">0x00000000004006b4</span> <span class="op">&lt;</span>+<span class="op">93&gt;</span>:    shl    <span class="va">$0</span>x5,%rax</span>
+<span id="cb4-23"><a href="csimd.html#cb4-23"></a>   <span class="ex">0x00000000004006b8</span> <span class="op">&lt;</span>+<span class="op">97&gt;</span>:    mov    %rax,%rdx</span>
+<span id="cb4-24"><a href="csimd.html#cb4-24"></a>   <span class="ex">0x00000000004006bb</span> <span class="op">&lt;</span>+<span class="op">100&gt;</span>:   mov    -0x198(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-25"><a href="csimd.html#cb4-25"></a>   <span class="ex">0x00000000004006c2</span> <span class="op">&lt;</span>+<span class="op">107&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-26"><a href="csimd.html#cb4-26"></a>   <span class="ex">0x00000000004006c5</span> <span class="op">&lt;</span>+<span class="op">110&gt;</span>:   mov    %rax,-0x188(%rbp)</span>
+<span id="cb4-27"><a href="csimd.html#cb4-27"></a>   <span class="ex">0x00000000004006cc</span> <span class="op">&lt;</span>+<span class="op">117&gt;</span>:   mov    -0x188(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-28"><a href="csimd.html#cb4-28"></a>   <span class="ex">0x00000000004006d3</span> <span class="op">&lt;</span>+<span class="op">124&gt;</span>:   vmovapd (%rax),<span class="ex">%ymm0</span></span>
+<span id="cb4-29"><a href="csimd.html#cb4-29"></a>   <span class="ex">0x00000000004006d7</span> <span class="op">&lt;</span>+<span class="op">128&gt;</span>:   vmovapd %ymm0,-0x50(%rbp)</span>
+<span id="cb4-30"><a href="csimd.html#cb4-30"></a>   <span class="ex">0x00000000004006dc</span> <span class="op">&lt;</span>+<span class="op">133&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-31"><a href="csimd.html#cb4-31"></a>   <span class="ex">0x00000000004006e0</span> <span class="op">&lt;</span>+<span class="op">137&gt;</span>:   shl    <span class="va">$0</span>x5,%rax</span>
+<span id="cb4-32"><a href="csimd.html#cb4-32"></a>   <span class="ex">0x00000000004006e4</span> <span class="op">&lt;</span>+<span class="op">141&gt;</span>:   mov    %rax,%rdx</span>
+<span id="cb4-33"><a href="csimd.html#cb4-33"></a>   <span class="ex">0x00000000004006e7</span> <span class="op">&lt;</span>+<span class="op">144&gt;</span>:   mov    -0x1a0(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-34"><a href="csimd.html#cb4-34"></a>   <span class="ex">0x00000000004006ee</span> <span class="op">&lt;</span>+<span class="op">151&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-35"><a href="csimd.html#cb4-35"></a>   <span class="ex">0x00000000004006f1</span> <span class="op">&lt;</span>+<span class="op">154&gt;</span>:   mov    %rax,-0x180(%rbp)</span>
+<span id="cb4-36"><a href="csimd.html#cb4-36"></a>   <span class="ex">0x00000000004006f8</span> <span class="op">&lt;</span>+<span class="op">161&gt;</span>:   mov    -0x180(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-37"><a href="csimd.html#cb4-37"></a>   <span class="ex">0x00000000004006ff</span> <span class="op">&lt;</span>+<span class="op">168&gt;</span>:   vmovapd (%rax),<span class="ex">%ymm0</span></span>
+<span id="cb4-38"><a href="csimd.html#cb4-38"></a>   <span class="ex">0x0000000000400703</span> <span class="op">&lt;</span>+<span class="op">172&gt;</span>:   vmovapd %ymm0,-0x70(%rbp)</span>
+<span id="cb4-39"><a href="csimd.html#cb4-39"></a>   <span class="ex">0x0000000000400708</span> <span class="op">&lt;</span>+<span class="op">177&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-40"><a href="csimd.html#cb4-40"></a>   <span class="ex">0x000000000040070c</span> <span class="op">&lt;</span>+<span class="op">181&gt;</span>:   shl    <span class="va">$0</span>x5,%rax</span>
+<span id="cb4-41"><a href="csimd.html#cb4-41"></a>   <span class="ex">0x0000000000400710</span> <span class="op">&lt;</span>+<span class="op">185&gt;</span>:   mov    %rax,%rdx</span>
+<span id="cb4-42"><a href="csimd.html#cb4-42"></a>   <span class="ex">0x0000000000400713</span> <span class="op">&lt;</span>+<span class="op">188&gt;</span>:   mov    -0x1a8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-43"><a href="csimd.html#cb4-43"></a>   <span class="ex">0x000000000040071a</span> <span class="op">&lt;</span>+<span class="op">195&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-44"><a href="csimd.html#cb4-44"></a>   <span class="ex">0x000000000040071d</span> <span class="op">&lt;</span>+<span class="op">198&gt;</span>:   mov    %rax,-0x178(%rbp)</span>
+<span id="cb4-45"><a href="csimd.html#cb4-45"></a>   <span class="ex">0x0000000000400724</span> <span class="op">&lt;</span>+<span class="op">205&gt;</span>:   mov    -0x178(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-46"><a href="csimd.html#cb4-46"></a>   <span class="ex">0x000000000040072b</span> <span class="op">&lt;</span>+<span class="op">212&gt;</span>:   vmovapd (%rax),<span class="ex">%ymm0</span></span>
+<span id="cb4-47"><a href="csimd.html#cb4-47"></a>   <span class="ex">0x000000000040072f</span> <span class="op">&lt;</span>+<span class="op">216&gt;</span>:   vmovapd %ymm0,-0x90(%rbp)</span>
+<span id="cb4-48"><a href="csimd.html#cb4-48"></a>   <span class="ex">0x0000000000400737</span> <span class="op">&lt;</span>+<span class="op">224&gt;</span>:   vmovapd -0x50(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-49"><a href="csimd.html#cb4-49"></a>   <span class="ex">0x000000000040073c</span> <span class="op">&lt;</span>+<span class="op">229&gt;</span>:   vmovapd %ymm0,-0x150(%rbp)</span>
+<span id="cb4-50"><a href="csimd.html#cb4-50"></a>   <span class="ex">0x0000000000400744</span> <span class="op">&lt;</span>+<span class="op">237&gt;</span>:   vmovapd -0x70(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-51"><a href="csimd.html#cb4-51"></a>   <span class="ex">0x0000000000400749</span> <span class="op">&lt;</span>+<span class="op">242&gt;</span>:   vmovapd %ymm0,-0x170(%rbp)</span>
+<span id="cb4-52"><a href="csimd.html#cb4-52"></a>   <span class="ex">0x0000000000400751</span> <span class="op">&lt;</span>+<span class="op">250&gt;</span>:   vmovapd -0x150(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-53"><a href="csimd.html#cb4-53"></a>   <span class="ex">0x0000000000400759</span> <span class="op">&lt;</span>+<span class="op">258&gt;</span>:   vmulpd -0x170(%rbp),<span class="ex">%ymm0</span>,%ymm0</span>
+<span id="cb4-54"><a href="csimd.html#cb4-54"></a>   <span class="ex">0x0000000000400761</span> <span class="op">&lt;</span>+<span class="op">266&gt;</span>:   vmovapd %ymm0,-0xb0(%rbp)</span>
+<span id="cb4-55"><a href="csimd.html#cb4-55"></a>   <span class="ex">0x0000000000400769</span> <span class="op">&lt;</span>+<span class="op">274&gt;</span>:   vmovapd -0xb0(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-56"><a href="csimd.html#cb4-56"></a>   <span class="ex">0x0000000000400771</span> <span class="op">&lt;</span>+<span class="op">282&gt;</span>:   vmovapd %ymm0,-0x110(%rbp)</span>
+<span id="cb4-57"><a href="csimd.html#cb4-57"></a>   <span class="ex">0x0000000000400779</span> <span class="op">&lt;</span>+<span class="op">290&gt;</span>:   vmovapd -0x90(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-58"><a href="csimd.html#cb4-58"></a>   <span class="ex">0x0000000000400781</span> <span class="op">&lt;</span>+<span class="op">298&gt;</span>:   vmovapd %ymm0,-0x130(%rbp)</span>
+<span id="cb4-59"><a href="csimd.html#cb4-59"></a>   <span class="ex">0x0000000000400789</span> <span class="op">&lt;</span>+<span class="op">306&gt;</span>:   vmovapd -0x110(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-60"><a href="csimd.html#cb4-60"></a>   <span class="ex">0x0000000000400791</span> <span class="op">&lt;</span>+<span class="op">314&gt;</span>:   vaddpd -0x130(%rbp),<span class="ex">%ymm0</span>,%ymm0</span>
+<span id="cb4-61"><a href="csimd.html#cb4-61"></a>   <span class="ex">0x0000000000400799</span> <span class="op">&lt;</span>+<span class="op">322&gt;</span>:   vmovapd %ymm0,-0xb0(%rbp)</span>
+<span id="cb4-62"><a href="csimd.html#cb4-62"></a>   <span class="ex">0x00000000004007a1</span> <span class="op">&lt;</span>+<span class="op">330&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-63"><a href="csimd.html#cb4-63"></a>   <span class="ex">0x00000000004007a5</span> <span class="op">&lt;</span>+<span class="op">334&gt;</span>:   shl    <span class="va">$0</span>x5,%rax</span>
+<span id="cb4-64"><a href="csimd.html#cb4-64"></a>   <span class="ex">0x00000000004007a9</span> <span class="op">&lt;</span>+<span class="op">338&gt;</span>:   mov    %rax,%rdx</span>
+<span id="cb4-65"><a href="csimd.html#cb4-65"></a>   <span class="ex">0x00000000004007ac</span> <span class="op">&lt;</span>+<span class="op">341&gt;</span>:   mov    -0x1b0(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-66"><a href="csimd.html#cb4-66"></a>   <span class="ex">0x00000000004007b3</span> <span class="op">&lt;</span>+<span class="op">348&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-67"><a href="csimd.html#cb4-67"></a>   <span class="ex">0x00000000004007b6</span> <span class="op">&lt;</span>+<span class="op">351&gt;</span>:   mov    %rax,-0xb8(%rbp)</span>
+<span id="cb4-68"><a href="csimd.html#cb4-68"></a>   <span class="ex">0x00000000004007bd</span> <span class="op">&lt;</span>+<span class="op">358&gt;</span>:   vmovapd -0xb0(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-69"><a href="csimd.html#cb4-69"></a>   <span class="ex">0x00000000004007c5</span> <span class="op">&lt;</span>+<span class="op">366&gt;</span>:   vmovapd %ymm0,-0xf0(%rbp)</span>
+<span id="cb4-70"><a href="csimd.html#cb4-70"></a>   <span class="ex">0x00000000004007cd</span> <span class="op">&lt;</span>+<span class="op">374&gt;</span>:   mov    -0xb8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-71"><a href="csimd.html#cb4-71"></a>   <span class="ex">0x00000000004007d4</span> <span class="op">&lt;</span>+<span class="op">381&gt;</span>:   vmovapd -0xf0(%rbp),<span class="ex">%ymm0</span></span>
+<span id="cb4-72"><a href="csimd.html#cb4-72"></a>   <span class="ex">0x00000000004007dc</span> <span class="op">&lt;</span>+<span class="op">389&gt;</span>:   vmovapd %ymm0,(%rax)</span>
+<span id="cb4-73"><a href="csimd.html#cb4-73"></a>   <span class="ex">0x00000000004007e0</span> <span class="op">&lt;</span>+<span class="op">393&gt;</span>:   addq   <span class="va">$0</span>x1,-0x18(%rbp)</span>
+<span id="cb4-74"><a href="csimd.html#cb4-74"></a>   <span class="ex">0x00000000004007e5</span> <span class="op">&lt;</span>+<span class="op">398&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-75"><a href="csimd.html#cb4-75"></a>   <span class="ex">0x00000000004007e9</span> <span class="op">&lt;</span>+<span class="op">402&gt;</span>:   cmp    -0x20(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-76"><a href="csimd.html#cb4-76"></a>   <span class="ex">0x00000000004007ed</span> <span class="op">&lt;</span>+<span class="op">406&gt;</span>:   jb     0x4006b0 <span class="op">&lt;</span>muladd+<span class="op">89&gt;</span></span>
+<span id="cb4-77"><a href="csimd.html#cb4-77"></a>   <span class="ex">0x00000000004007f3</span> <span class="op">&lt;</span>+<span class="op">412&gt;</span>:   mov    -0x1b8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-78"><a href="csimd.html#cb4-78"></a>   <span class="ex">0x00000000004007fa</span> <span class="op">&lt;</span>+<span class="op">419&gt;</span>:   and    <span class="va">$0</span>xfffffffffffffffc,%rax</span>
+<span id="cb4-79"><a href="csimd.html#cb4-79"></a>   <span class="ex">0x00000000004007fe</span> <span class="op">&lt;</span>+<span class="op">423&gt;</span>:   mov    %rax,-0x18(%rbp)</span>
+<span id="cb4-80"><a href="csimd.html#cb4-80"></a>   <span class="ex">0x0000000000400802</span> <span class="op">&lt;</span>+<span class="op">427&gt;</span>:   jmp    0x400879 <span class="op">&lt;</span>muladd+<span class="op">546&gt;</span></span>
+<span id="cb4-81"><a href="csimd.html#cb4-81"></a>   <span class="ex">0x0000000000400804</span> <span class="op">&lt;</span>+<span class="op">429&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-82"><a href="csimd.html#cb4-82"></a>   <span class="ex">0x0000000000400808</span> <span class="op">&lt;</span>+<span class="op">433&gt;</span>:   lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb4-83"><a href="csimd.html#cb4-83"></a>   <span class="ex">0x0000000000400810</span> <span class="op">&lt;</span>+<span class="op">441&gt;</span>:   mov    -0x198(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-84"><a href="csimd.html#cb4-84"></a>   <span class="ex">0x0000000000400817</span> <span class="op">&lt;</span>+<span class="op">448&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-85"><a href="csimd.html#cb4-85"></a>   <span class="ex">0x000000000040081a</span> <span class="op">&lt;</span>+<span class="op">451&gt;</span>:   vmovsd (%rax),<span class="ex">%xmm1</span></span>
+<span id="cb4-86"><a href="csimd.html#cb4-86"></a>   <span class="ex">0x000000000040081e</span> <span class="op">&lt;</span>+<span class="op">455&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-87"><a href="csimd.html#cb4-87"></a>   <span class="ex">0x0000000000400822</span> <span class="op">&lt;</span>+<span class="op">459&gt;</span>:   lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb4-88"><a href="csimd.html#cb4-88"></a>   <span class="ex">0x000000000040082a</span> <span class="op">&lt;</span>+<span class="op">467&gt;</span>:   mov    -0x1a0(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-89"><a href="csimd.html#cb4-89"></a>   <span class="ex">0x0000000000400831</span> <span class="op">&lt;</span>+<span class="op">474&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-90"><a href="csimd.html#cb4-90"></a>   <span class="ex">0x0000000000400834</span> <span class="op">&lt;</span>+<span class="op">477&gt;</span>:   vmovsd (%rax),<span class="ex">%xmm0</span></span>
+<span id="cb4-91"><a href="csimd.html#cb4-91"></a>   <span class="ex">0x0000000000400838</span> <span class="op">&lt;</span>+<span class="op">481&gt;</span>:   vmulsd %xmm0,%xmm1,%xmm0</span>
+<span id="cb4-92"><a href="csimd.html#cb4-92"></a>   <span class="ex">0x000000000040083c</span> <span class="op">&lt;</span>+<span class="op">485&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-93"><a href="csimd.html#cb4-93"></a>   <span class="ex">0x0000000000400840</span> <span class="op">&lt;</span>+<span class="op">489&gt;</span>:   lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb4-94"><a href="csimd.html#cb4-94"></a>   <span class="ex">0x0000000000400848</span> <span class="op">&lt;</span>+<span class="op">497&gt;</span>:   mov    -0x1a8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-95"><a href="csimd.html#cb4-95"></a>   <span class="ex">0x000000000040084f</span> <span class="op">&lt;</span>+<span class="op">504&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-96"><a href="csimd.html#cb4-96"></a>   <span class="ex">0x0000000000400852</span> <span class="op">&lt;</span>+<span class="op">507&gt;</span>:   vmovsd (%rax),<span class="ex">%xmm1</span></span>
+<span id="cb4-97"><a href="csimd.html#cb4-97"></a>   <span class="ex">0x0000000000400856</span> <span class="op">&lt;</span>+<span class="op">511&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-98"><a href="csimd.html#cb4-98"></a>   <span class="ex">0x000000000040085a</span> <span class="op">&lt;</span>+<span class="op">515&gt;</span>:   lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb4-99"><a href="csimd.html#cb4-99"></a>   <span class="ex">0x0000000000400862</span> <span class="op">&lt;</span>+<span class="op">523&gt;</span>:   mov    -0x1b0(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-100"><a href="csimd.html#cb4-100"></a>   <span class="ex">0x0000000000400869</span> <span class="op">&lt;</span>+<span class="op">530&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb4-101"><a href="csimd.html#cb4-101"></a>   <span class="ex">0x000000000040086c</span> <span class="op">&lt;</span>+<span class="op">533&gt;</span>:   vaddsd %xmm1,%xmm0,%xmm0</span>
+<span id="cb4-102"><a href="csimd.html#cb4-102"></a>   <span class="ex">0x0000000000400870</span> <span class="op">&lt;</span>+<span class="op">537&gt;</span>:   vmovsd %xmm0,(%rax)</span>
+<span id="cb4-103"><a href="csimd.html#cb4-103"></a>   <span class="ex">0x0000000000400874</span> <span class="op">&lt;</span>+<span class="op">541&gt;</span>:   addq   <span class="va">$0</span>x1,-0x18(%rbp)</span>
+<span id="cb4-104"><a href="csimd.html#cb4-104"></a>   <span class="ex">0x0000000000400879</span> <span class="op">&lt;</span>+<span class="op">546&gt;</span>:   mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-105"><a href="csimd.html#cb4-105"></a>   <span class="ex">0x000000000040087d</span> <span class="op">&lt;</span>+<span class="op">550&gt;</span>:   cmp    -0x1b8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb4-106"><a href="csimd.html#cb4-106"></a>   <span class="ex">0x0000000000400884</span> <span class="op">&lt;</span>+<span class="op">557&gt;</span>:   jb     0x400804 <span class="op">&lt;</span>muladd+<span class="op">429&gt;</span></span>
+<span id="cb4-107"><a href="csimd.html#cb4-107"></a>   <span class="ex">0x000000000040088a</span> <span class="op">&lt;</span>+<span class="op">563&gt;</span>:   nop</span>
+<span id="cb4-108"><a href="csimd.html#cb4-108"></a>   <span class="ex">0x000000000040088b</span> <span class="op">&lt;</span>+<span class="op">564&gt;</span>:   add    <span class="va">$0</span>x150,%rsp</span>
+<span id="cb4-109"><a href="csimd.html#cb4-109"></a>   <span class="ex">0x0000000000400892</span> <span class="op">&lt;</span>+<span class="op">571&gt;</span>:   pop    %r10</span>
+<span id="cb4-110"><a href="csimd.html#cb4-110"></a>   <span class="ex">0x0000000000400894</span> <span class="op">&lt;</span>+<span class="op">573&gt;</span>:   pop    %rbp</span>
+<span id="cb4-111"><a href="csimd.html#cb4-111"></a>   <span class="ex">0x0000000000400895</span> <span class="op">&lt;</span>+<span class="op">574&gt;</span>:   lea    -0x8(%r10),<span class="ex">%rsp</span></span>
+<span id="cb4-112"><a href="csimd.html#cb4-112"></a>   <span class="ex">0x0000000000400899</span> <span class="op">&lt;</span>+<span class="op">578&gt;</span>:   retq</span>
+<span id="cb4-113"><a href="csimd.html#cb4-113"></a><span class="ex">End</span> of assembler dump.</span></code></pre></div>
+<p>对比一下标量版得到的汇编：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="csimd.html#cb5-1"></a>$ <span class="fu">gdb</span> muladd</span>
+<span id="cb5-2"><a href="csimd.html#cb5-2"></a>  <span class="kw">(</span><span class="fu">gdb</span><span class="kw">)</span> <span class="ex">disassemble</span> muladd</span>
+<span id="cb5-3"><a href="csimd.html#cb5-3"></a>  <span class="ex">Dump</span> of assembler code for function muladd:</span>
+<span id="cb5-4"><a href="csimd.html#cb5-4"></a>   <span class="ex">0x0000000000400637</span> <span class="op">&lt;</span>+<span class="op">0&gt;</span>:     push   %rbp</span>
+<span id="cb5-5"><a href="csimd.html#cb5-5"></a>   <span class="ex">0x0000000000400638</span> <span class="op">&lt;</span>+<span class="op">1&gt;</span>:     mov    %rsp,%rbp</span>
+<span id="cb5-6"><a href="csimd.html#cb5-6"></a>   <span class="ex">0x000000000040063b</span> <span class="op">&lt;</span>+<span class="op">4&gt;</span>:     mov    %rdi,-0x18(%rbp)</span>
+<span id="cb5-7"><a href="csimd.html#cb5-7"></a>   <span class="ex">0x000000000040063f</span> <span class="op">&lt;</span>+<span class="op">8&gt;</span>:     mov    %rsi,-0x20(%rbp)</span>
+<span id="cb5-8"><a href="csimd.html#cb5-8"></a>   <span class="ex">0x0000000000400643</span> <span class="op">&lt;</span>+<span class="op">12&gt;</span>:    mov    %rdx,-0x28(%rbp)</span>
+<span id="cb5-9"><a href="csimd.html#cb5-9"></a>   <span class="ex">0x0000000000400647</span> <span class="op">&lt;</span>+<span class="op">16&gt;</span>:    mov    %rcx,-0x30(%rbp)</span>
+<span id="cb5-10"><a href="csimd.html#cb5-10"></a>   <span class="ex">0x000000000040064b</span> <span class="op">&lt;</span>+<span class="op">20&gt;</span>:    mov    %r8,-0x38(%rbp)</span>
+<span id="cb5-11"><a href="csimd.html#cb5-11"></a>   <span class="ex">0x000000000040064f</span> <span class="op">&lt;</span>+<span class="op">24&gt;</span>:    movq   <span class="va">$0</span>x0,-0x8(%rbp)</span>
+<span id="cb5-12"><a href="csimd.html#cb5-12"></a>   <span class="ex">0x0000000000400657</span> <span class="op">&lt;</span>+<span class="op">32&gt;</span>:    jmp    0x4006c2 <span class="op">&lt;</span>muladd+<span class="op">139&gt;</span></span>
+<span id="cb5-13"><a href="csimd.html#cb5-13"></a>   <span class="ex">0x0000000000400659</span> <span class="op">&lt;</span>+<span class="op">34&gt;</span>:    mov    -0x8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-14"><a href="csimd.html#cb5-14"></a>   <span class="ex">0x000000000040065d</span> <span class="op">&lt;</span>+<span class="op">38&gt;</span>:    lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb5-15"><a href="csimd.html#cb5-15"></a>   <span class="ex">0x0000000000400665</span> <span class="op">&lt;</span>+<span class="op">46&gt;</span>:    mov    -0x18(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-16"><a href="csimd.html#cb5-16"></a>   <span class="ex">0x0000000000400669</span> <span class="op">&lt;</span>+<span class="op">50&gt;</span>:    add    %rdx,%rax</span>
+<span id="cb5-17"><a href="csimd.html#cb5-17"></a>   <span class="ex">0x000000000040066c</span> <span class="op">&lt;</span>+<span class="op">53&gt;</span>:    movsd  (%rax),<span class="ex">%xmm1</span></span>
+<span id="cb5-18"><a href="csimd.html#cb5-18"></a>   <span class="ex">0x0000000000400670</span> <span class="op">&lt;</span>+<span class="op">57&gt;</span>:    mov    -0x8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-19"><a href="csimd.html#cb5-19"></a>   <span class="ex">0x0000000000400674</span> <span class="op">&lt;</span>+<span class="op">61&gt;</span>:    lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb5-20"><a href="csimd.html#cb5-20"></a>   <span class="ex">0x000000000040067c</span> <span class="op">&lt;</span>+<span class="op">69&gt;</span>:    mov    -0x20(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-21"><a href="csimd.html#cb5-21"></a>   <span class="ex">0x0000000000400680</span> <span class="op">&lt;</span>+<span class="op">73&gt;</span>:    add    %rdx,%rax</span>
+<span id="cb5-22"><a href="csimd.html#cb5-22"></a>   <span class="ex">0x0000000000400683</span> <span class="op">&lt;</span>+<span class="op">76&gt;</span>:    movsd  (%rax),<span class="ex">%xmm0</span></span>
+<span id="cb5-23"><a href="csimd.html#cb5-23"></a>   <span class="ex">0x0000000000400687</span> <span class="op">&lt;</span>+<span class="op">80&gt;</span>:    mulsd  %xmm1,%xmm0</span>
+<span id="cb5-24"><a href="csimd.html#cb5-24"></a>   <span class="ex">0x000000000040068b</span> <span class="op">&lt;</span>+<span class="op">84&gt;</span>:    mov    -0x8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-25"><a href="csimd.html#cb5-25"></a>   <span class="ex">0x000000000040068f</span> <span class="op">&lt;</span>+<span class="op">88&gt;</span>:    lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb5-26"><a href="csimd.html#cb5-26"></a>   <span class="ex">0x0000000000400697</span> <span class="op">&lt;</span>+<span class="op">96&gt;</span>:    mov    -0x28(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-27"><a href="csimd.html#cb5-27"></a>   <span class="ex">0x000000000040069b</span> <span class="op">&lt;</span>+<span class="op">100&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb5-28"><a href="csimd.html#cb5-28"></a>   <span class="ex">0x000000000040069e</span> <span class="op">&lt;</span>+<span class="op">103&gt;</span>:   movsd  (%rax),<span class="ex">%xmm1</span></span>
+<span id="cb5-29"><a href="csimd.html#cb5-29"></a>   <span class="ex">0x00000000004006a2</span> <span class="op">&lt;</span>+<span class="op">107&gt;</span>:   mov    -0x8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-30"><a href="csimd.html#cb5-30"></a>   <span class="ex">0x00000000004006a6</span> <span class="op">&lt;</span>+<span class="op">111&gt;</span>:   lea    0x0(,%rax,8),<span class="ex">%rdx</span></span>
+<span id="cb5-31"><a href="csimd.html#cb5-31"></a>   <span class="ex">0x00000000004006ae</span> <span class="op">&lt;</span>+<span class="op">119&gt;</span>:   mov    -0x30(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-32"><a href="csimd.html#cb5-32"></a>   <span class="ex">0x00000000004006b2</span> <span class="op">&lt;</span>+<span class="op">123&gt;</span>:   add    %rdx,%rax</span>
+<span id="cb5-33"><a href="csimd.html#cb5-33"></a>   <span class="ex">0x00000000004006b5</span> <span class="op">&lt;</span>+<span class="op">126&gt;</span>:   addsd  %xmm1,%xmm0</span>
+<span id="cb5-34"><a href="csimd.html#cb5-34"></a>   <span class="ex">0x00000000004006b9</span> <span class="op">&lt;</span>+<span class="op">130&gt;</span>:   movsd  %xmm0,(%rax)</span>
+<span id="cb5-35"><a href="csimd.html#cb5-35"></a>   <span class="ex">0x00000000004006bd</span> <span class="op">&lt;</span>+<span class="op">134&gt;</span>:   addq   <span class="va">$0</span>x1,-0x8(%rbp)</span>
+<span id="cb5-36"><a href="csimd.html#cb5-36"></a>   <span class="ex">0x00000000004006c2</span> <span class="op">&lt;</span>+<span class="op">139&gt;</span>:   mov    -0x8(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-37"><a href="csimd.html#cb5-37"></a>   <span class="ex">0x00000000004006c6</span> <span class="op">&lt;</span>+<span class="op">143&gt;</span>:   cmp    -0x38(%rbp),<span class="ex">%rax</span></span>
+<span id="cb5-38"><a href="csimd.html#cb5-38"></a>   <span class="ex">0x00000000004006ca</span> <span class="op">&lt;</span>+<span class="op">147&gt;</span>:   jb     0x400659 <span class="op">&lt;</span>muladd+<span class="op">34&gt;</span></span>
+<span id="cb5-39"><a href="csimd.html#cb5-39"></a>   <span class="ex">0x00000000004006cc</span> <span class="op">&lt;</span>+<span class="op">149&gt;</span>:   nop</span>
+<span id="cb5-40"><a href="csimd.html#cb5-40"></a>   <span class="ex">0x00000000004006cd</span> <span class="op">&lt;</span>+<span class="op">150&gt;</span>:   pop    %rbp</span>
+<span id="cb5-41"><a href="csimd.html#cb5-41"></a>   <span class="ex">0x00000000004006ce</span> <span class="op">&lt;</span>+<span class="op">151&gt;</span>:   retq</span>
+<span id="cb5-42"><a href="csimd.html#cb5-42"></a><span class="ex">End</span> of assembler dump.</span></code></pre></div>
+<p>差好多！仔细看一下，SIMD版本中&lt;+89&gt;到&lt;+128&gt;这部分。简单解释一下：</p>
+<table>
+<thead>
+<tr class="header">
+<th><位置></th>
+<th>汇编</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>&lt; +89&gt;</td>
+<td>mov -0x18(%rbp),%rax</td>
+<td>将循环变量(i) 读入寄存器rax</td>
+</tr>
+<tr class="even">
+<td>&lt; +93&gt;</td>
+<td>shl $0x5,%rax</td>
+<td>rax中的数左移5位(相当于*32).</td>
+</tr>
+<tr class="odd">
+<td>&lt; +97&gt;</td>
+<td>mov %rax,%rdx</td>
+<td>将rax中的数拷贝到rdx寄存器中</td>
+</tr>
+<tr class="even">
+<td>&lt;+100&gt;</td>
+<td>mov -0x198(%rbp),%rax</td>
+<td>将数组A的地址读入寄存器rax</td>
+</tr>
+<tr class="odd">
+<td>&lt;+107&gt;</td>
+<td>add %rdx,%rax</td>
+<td>rax = rax + rdx</td>
+</tr>
+<tr class="even">
+<td>&lt;+124&gt;</td>
+<td>vmovapd (%rax),%ymm0</td>
+<td>从rax寄存器所示地址处读取256位到YMM0</td>
+</tr>
+<tr class="odd">
+<td>&lt;+128&gt;</td>
+<td>vmovapd %ymm0,-0x50(%rbp)</td>
+<td>将YMM0中的数据保存在栈上的一个位置</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>如果您曾经学习过《汇编语言程序设计》或者《微机原理》等课程，可能会对上述汇编代码有疑问。这是由于通常微机原理课程使用的是Intel 格式的汇编(ins dst, src)，而GCC使用AT&amp;T格式(ins src, dst)，一般来讲操作数的顺序和Intel格式都是反过来的。<br />
+如果您并不懂汇编，也可以直接看结论。如果对汇编感兴趣，可以参考附录。</p>
+</blockquote>
+<p>简单来说，就是每一次循环把需要的值取到寄存器中，再存到栈上(可以理解为函数自有的内存)。三个数据都存好后，再把他们依次从栈里取到不同的YMM寄存器里，做求积和求和，再存到相应位置。（这只是大致过程，实际看一看，它干的傻事还不少）。</p>
+<p>仔细想想，其实编译器这么做是有道理的。在程序里，我们写了<code>__m256d ymma = _mm256_load_pd(a+i*4);</code>，这意味着我们要有一个<code>ymma</code>变量。编译器并不知道我们会不会对这个变量做 ·一·些·奇·怪·的·事· 因此便把它又写进了栈里。那么有没有办法让编译器明白我们不会乱动<code>ymma</code>呢？有！</p>
+</div>
+<div id="csimd_reg" class="section level2">
+<h2><span class="header-section-number">1.3</span> 搞个寄存器变量</h2>
+<blockquote>
+<p><em>我买几个橘子去。你就在此地，不要走动。——《背影》</em></p>
+</blockquote>
+<p>只要在声明变量的时候，在类型前面加上<code>register</code>关键字，编译器就明白这个东西应该常驻在寄存器里面，就不会来回读写内存了。需要注意<strong>不能对寄存器变量取地址！</strong>顺便，这个浓眉大眼的循环次数也可以放到寄存器里面的样子，把这些东西加上<code>register</code>关键字：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="csimd.html#cb6-1"></a>    <span class="dt">register</span> <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> M = N&gt;&gt;<span class="dv">2</span>;</span>
+<span id="cb6-2"><a href="csimd.html#cb6-2"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; M; i++){</span>
+<span id="cb6-3"><a href="csimd.html#cb6-3"></a>        <span class="dt">register</span> __m256d ymma = _mm256_load_pd(a+i*<span class="dv">4</span>);</span>
+<span id="cb6-4"><a href="csimd.html#cb6-4"></a>        <span class="dt">register</span> __m256d ymmb = _mm256_load_pd(b+i*<span class="dv">4</span>);</span>
+<span id="cb6-5"><a href="csimd.html#cb6-5"></a>        <span class="dt">register</span> __m256d ymmc = _mm256_load_pd(c+i*<span class="dv">4</span>);</span>
+<span id="cb6-6"><a href="csimd.html#cb6-6"></a>        <span class="dt">register</span> __m256d ymmd = _mm256_mul_pd(ymma, ymmb);</span>
+<span id="cb6-7"><a href="csimd.html#cb6-7"></a>        ymmd = _mm256_add_pd(ymmd, ymmc);</span>
+<span id="cb6-8"><a href="csimd.html#cb6-8"></a>        _mm256_store_pd(d+i*<span class="dv">4</span>,ymmd);</span>
+<span id="cb6-9"><a href="csimd.html#cb6-9"></a>    }</span></code></pre></div>
+<p>再来运行下。<strong>别忘了编译时加-mavx</strong><br />
+大概12秒左右。已经比最原始的版本快了近一倍了!四舍五入一个亿啊！</p>
+<blockquote>
+<p>在新标准的c++中，据说register关键字已经没有意义了，加了register编译器也不一定用寄存器，不加也不一定就不用。但是在我用c++测试的时候，发现还是有用的。<br />
+在g++里增加<code>-std=c++11</code>或者<code>-std=c++14</code>都可以顺利编译，运行速度一致。如果加<code>-std=c++17</code>则会报几个warning，说是新标准不许regester，但是还是会比不加register关键字要快。（啊哈，你个c++17，嘴上说着warning，身体倒是很老实嘛！）</p>
+</blockquote>
+</div>
+<div id="csimd_asm" class="section level2">
+<h2><span class="header-section-number">1.4</span> 我比编译器聪明系列</h2>
+<blockquote>
+<p><em>コンピューターも、天国へいけるかな。——『Lost Universe』</em></p>
+</blockquote>
+<p>还能不能再快一点？我想要的四倍提速呢？<br />
+下面我们使用c语言的内联汇编做这件事。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="csimd.html#cb7-1"></a>__attribute__ ((noinline))</span>
+<span id="cb7-2"><a href="csimd.html#cb7-2"></a><span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c,</span>
+<span id="cb7-3"><a href="csimd.html#cb7-3"></a>            <span class="dt">double</span>* d, <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
+<span id="cb7-4"><a href="csimd.html#cb7-4"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i;</span>
+<span id="cb7-5"><a href="csimd.html#cb7-5"></a>    __asm__ __volatile__(</span>
+<span id="cb7-6"><a href="csimd.html#cb7-6"></a>            <span class="st">&quot;movq %0, %%rax </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-7"><a href="csimd.html#cb7-7"></a>            <span class="st">&quot;movq %1, %%rbx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-8"><a href="csimd.html#cb7-8"></a>            <span class="st">&quot;movq %2, %%rcx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-9"><a href="csimd.html#cb7-9"></a>            <span class="st">&quot;movq %3, %%rdx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-10"><a href="csimd.html#cb7-10"></a>            <span class="st">&quot;movq %4, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-11"><a href="csimd.html#cb7-11"></a>            <span class="st">&quot;shr  $2, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-12"><a href="csimd.html#cb7-12"></a>            <span class="st">&quot;movq $0, %%r9  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-13"><a href="csimd.html#cb7-13"></a>            <span class="st">&quot;jmp  .check_%= </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-14"><a href="csimd.html#cb7-14"></a>            <span class="st">&quot;.loop_%=:         </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-15"><a href="csimd.html#cb7-15"></a>            <span class="st">&quot;shl $2, %%r9   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-16"><a href="csimd.html#cb7-16"></a>            <span class="st">&quot;vmovupd (%%rax, %%r9, 8), %%ymm0 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-17"><a href="csimd.html#cb7-17"></a>            <span class="st">&quot;vmovupd (%%rbx, %%r9, 8), %%ymm1 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-18"><a href="csimd.html#cb7-18"></a>            <span class="st">&quot;vmovupd (%%rcx, %%r9, 8), %%ymm2 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-19"><a href="csimd.html#cb7-19"></a>            <span class="st">&quot;vmulpd %%ymm0, %%ymm1, %%ymm3    </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-20"><a href="csimd.html#cb7-20"></a>            <span class="st">&quot;vaddpd %%ymm2, %%ymm3, %%ymm3    </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-21"><a href="csimd.html#cb7-21"></a>            <span class="st">&quot;vmovupd %%ymm3, (%%rdx, %%r9, 8) </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-22"><a href="csimd.html#cb7-22"></a>            <span class="st">&quot;shr $2, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-23"><a href="csimd.html#cb7-23"></a>            <span class="st">&quot;add $1, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-24"><a href="csimd.html#cb7-24"></a>            <span class="st">&quot;.check_%=:                    </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-25"><a href="csimd.html#cb7-25"></a>            <span class="st">&quot;cmpq %%r8, %%r9               </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-26"><a href="csimd.html#cb7-26"></a>            <span class="st">&quot;jl .loop_%=                   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb7-27"><a href="csimd.html#cb7-27"></a>            :</span>
+<span id="cb7-28"><a href="csimd.html#cb7-28"></a>            :<span class="st">&quot;m&quot;</span>(a), <span class="st">&quot;m&quot;</span>(b), <span class="st">&quot;m&quot;</span>(c), <span class="st">&quot;m&quot;</span>(d), <span class="st">&quot;m&quot;</span>(N)</span>
+<span id="cb7-29"><a href="csimd.html#cb7-29"></a>            :<span class="st">&quot;%rax&quot;</span>, <span class="st">&quot;%rbx&quot;</span>, <span class="st">&quot;%rcx&quot;</span>, <span class="st">&quot;%rdx&quot;</span>, <span class="st">&quot;%r8&quot;</span>, <span class="st">&quot;%r9&quot;</span>,</span>
+<span id="cb7-30"><a href="csimd.html#cb7-30"></a>             <span class="st">&quot;%ymm0&quot;</span>, <span class="st">&quot;%ymm1&quot;</span>, <span class="st">&quot;%ymm2&quot;</span>, <span class="st">&quot;%ymm3&quot;</span>, <span class="st">&quot;memory&quot;</span></span>
+<span id="cb7-31"><a href="csimd.html#cb7-31"></a>            );</span>
+<span id="cb7-32"><a href="csimd.html#cb7-32"></a>    <span class="cf">if</span>(N%<span class="dv">4</span>!=<span class="dv">0</span>){</span>
+<span id="cb7-33"><a href="csimd.html#cb7-33"></a>        <span class="cf">for</span>(i = N-N%<span class="dv">4</span>; i&lt;N; i++){</span>
+<span id="cb7-34"><a href="csimd.html#cb7-34"></a>            d[i] = a[i]*b[i]+c[i];</span>
+<span id="cb7-35"><a href="csimd.html#cb7-35"></a>        }</span>
+<span id="cb7-36"><a href="csimd.html#cb7-36"></a>    }</span>
+<span id="cb7-37"><a href="csimd.html#cb7-37"></a>}</span></code></pre></div>
+<blockquote>
+<p>关于内联汇编的介绍，请参见附录。这里用一段汇编代替了前面的循环部分。当N不是4的整数倍时余下的1-3个运算使用普通c代码，并不会对性能产生太大影响。以及，这次编译不需要<code>-mavx</code>了。</p>
+</blockquote>
+<p>编译，运行一下。不到4s！达到了预期的速度。</p>
+<p>当然，也可以找一下AVX512指令怎么写（其实跟AVX是基本一样的），获得进一步加速。</p>
+</div>
+<div id="csimd_gccO3" class="section level2">
+<h2><span class="header-section-number">1.5</span> 编译器比我聪明系列</h2>
+<blockquote>
+<p><em>Doing nothing often leads to the very best something.——Winnie-the-Pooh</em></p>
+</blockquote>
+<p>虽然这里手写了汇编，但是在一般的程序里不建议这么做，除非有信心做得好并且能加速。</p>
+<p>实测，<code>gcc -mavx -O3 -o muladd muladd.c</code>编译出来的程序与上述内联汇编的程序速度相差无几。在<code>-O3</code>优化下gcc是有矢量化优化的，也是把运算优化到了四个一组同时做。</p>
+<p>同理，<code>gcc -mavx512f -O3 -o muladd muladd.c</code>会进行AVX512矢量化，八个一组，再快一倍（可能不到点一倍）。</p>
+<p>此外，使用intrinsic的同时，如果打开<code>-O2</code>优化，速度也会很快，甚至比手写汇编快那么一点。看一下反汇编，是少了一些取数到寄存器的操作（好吧我承认我学艺不精）。但是<code>-O2</code>优化本身是不进行矢量化的，也就是说在<code>-O2</code>优化下如果使用我们最开始的<code>muladd.c</code>的话是利用不到SIMD来加速的。因此用<code>-O2</code>配合intrinsic可能是一个好的选择。</p>
+<blockquote>
+<p>顺便提一下，无论是汇编还是intrinsic，可读性都比较差，最好多加一些注释。</p>
+</blockquote>
+</div>
+<div id="csimd_sum" class="section level2">
+<h2><span class="header-section-number">1.6</span> 本章小结</h2>
+<p>SIMD大概是粒度最小的并行了吧？如同上面的例子，适当使用已经可以极大地提高程序运行速度了。</p>
+<p>要注意一点，这里面“矢量运算”只是同时做好几个运算地意思，如果你想真的把它当作矢量，甚至想求个外积，那就超出处理器的能力范围了。只能把外积运算分解成加减乘除再进行计算。</p>
+<p>这一章到这里就应该结束了，但我觉得阅读指南的你脑中一定充满了问号。所以在这里尝试自问自答一下。</p>
+<hr />
+<p><strong>问：为什么要做1,000,000次8192维数组的运算，而不直接用8,192,000,000维的数组？</strong></p>
+<p>答：是的。在我制作这份指南之前也是这么想的。但是发现SIMD以后速度并没有提高。经查，发现原理在于内存带宽吃满了。虽然处理器可以算得飞快，但是内存速度跟不上导致速度被限制了，因此矢量算法和标量算法速度相近。而减小数据规模以后，8192个double都会存储在CPU的高速缓存中，这样就避免了内存带宽的限制，从而可以比较向量和标量指令的速度差异。<br />
+在实际使用中，对数据的处理显然不只是先求积再求和这种简单运算。随着运算变得复杂，当处理数据的时间达到甚至超过内存存取用时的时候，SIMD的提速效果自然就可以体现出来了。</p>
+<p>此外，<span class="math inline">\(8,192,000,000 double \times 8 Byte/double = 65536 \times 10^{6} Byte \approx 64GB\)</span>吃内存稍微有点大。</p>
+<hr />
+<p><strong>问：既然gcc可以优化得这么好，搞这么复杂就没有意义了吧？</strong></p>
+<p>答：这可不好说了。在很久以前，听说gcc的-O3有可能会搞出莫名其妙的bug。虽然我没遇到过这种情况，虽然这种情况肯定非常少见，但是总的来说给人一种不太可靠的感觉。此外，纯凭个人感觉，可能gcc的优化力量也是有限的，如果计算过程比较长比较复杂，可能gcc并不一定能选出最合适的优化方法（可能会找不到数据/变量之间的关联？）。还有，如果你的程序不使用C/C++的话，还有一定的可能你的编译器并不支持AVX，这时就要自己动手丰衣足食（当然也可以用C/C++搞一个动态链接库）。另外<code>-O2</code>不会自动进行矢量化，所以至少intrinsic在<code>-O2</code>下还是有意义的。不开优化开关的话，还是要汇编才快一些。具体怎么写代码用什么优化还是要自己取舍。</p>
+<hr />
+<p><strong>问：作者你好厉害哦！咋啥都懂？</strong></p>
+<p>答：正常小朋友一般问不出来这种问题。</p>
+</div>
+<div id="csimd_add" class="section level2">
+<h2><span class="header-section-number">1.7</span> 补充内容</h2>
+<p>在这里补充一些比较常用(大概)的AVX指令和对应的Intrinsic。（指令都是AT&amp;T格式）</p>
+<table>
+<colgroup>
+<col width="28%" />
+<col width="28%" />
+<col width="42%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Intrinsic</th>
+<th>指令</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>_mm256_loadu_pd</td>
+<td>VMOVUPD m256, ymm</td>
+<td>将内存中连续的4个double读入ymm</td>
+</tr>
+<tr class="even">
+<td>_mm256_storeu_pd</td>
+<td>VMOVUPD ymm, m256</td>
+<td>将ymm寄存器中的4个double写入连续内存</td>
+</tr>
+<tr class="odd">
+<td>_mm256_add_pd</td>
+<td>VADDPD ymm1, ymm2, ymm3</td>
+<td>ymm3 = ymm2 + ymm1</td>
+</tr>
+<tr class="even">
+<td>_mm256_sub_pd</td>
+<td>VSUBPD ymm1, ymm2, ymm3</td>
+<td>ymm3 = ymm2 - ymm1</td>
+</tr>
+<tr class="odd">
+<td>_mm256_mul_pd</td>
+<td>VMULPD ymm1, ymm2, ymm3</td>
+<td>ymm3 = ymm2 * ymm1</td>
+</tr>
+<tr class="even">
+<td>_mm256_div_pd</td>
+<td>VDIVPD ymm1, ymm2, ymm3</td>
+<td>ymm3 = ymm2 / ymm1</td>
+</tr>
+<tr class="odd">
+<td>_mm256_permute4x64_pd</td>
+<td>VPERMPD imm8, ymm1, ymm2</td>
+<td>ymm1按照imm8所述重排入ymm2</td>
+</tr>
+</tbody>
+</table>
+<p>解释一下除法和减法反过来的问题。前面提到AT&amp;T汇编和Intel汇编是反向的。在MOV之类的指令中，AT&amp;T格式看起来和谐一点，结果就是在减法和除法的地方反过来了。</p>
+<p>关于permute，imm8是一个立即数，每两位为一组，表示ymm中的第某个数。</p>
+<blockquote>
+<p>例：<br />
+ymm1 = (a, b, c, d)<br />
+VPEMPD $0xc5, ymm1, ymm2<br />
+=&gt; ymm2 = (b, b, a, d)</p>
+</blockquote>
+<p>是这样的，0xc5 = 11 00 01 01 (b). 00对应a，01对应b，10对应c，11对应d。
+而从MSB到LSB的顺序是(3,2,1,0)的顺序。因此目标的第0个double是根据最低两位01取数据，取到b； 第一个同理，01-&gt;b；第二个是00，取a；第三个是11，取d。另外，如果内存里连续的double是(a,b,c,d)的话，VMOVUPD取进ymm寄存器的值就是(a,b,c,d).如果参考一些汇编手册，可能会发现手册里写的是反过来的(d,c,b,a).这只是表示方法不同。在汇编手册里习惯按照低位在右高位在左的顺序表示。</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="x40.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="cmt.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yihui/bookdown-chinese/edit/master/02-c_para.Rmd",
+"text": "编辑"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["bookdown.pdf", "bookdown.epub"],
+"toc": {
+"collapse": "none"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
