@@ -1,5 +1,12 @@
 # (PART) GPGPU {-} 
 
+
+# 第二部分 {#part2 .unnumbered}
+
+这一部分介绍GPU并行编程相关内容。
+
+如无特殊说明，示例代码均可在cuda11.0.3+gcc9.3.0环境下成功编译/运行。
+
 # GPU简介 {#gpuintro}
 
 GPU，即 Graphics Processing Unit，顾名思义，是用来处理图形的。那它可能就要问了，我明明是用来处理图形的，怎么就跑来做通用计算了呢？卡的一生啊，不可预料……    

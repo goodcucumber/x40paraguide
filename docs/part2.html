@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>A 汇编语言简介 | x40并行编程指南</title>
+  <title>第二部分 | x40并行编程指南</title>
   <meta name="description" content="在x40服务器上并行运算" />
   <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="A 汇编语言简介 | x40并行编程指南" />
+  <meta property="og:title" content="第二部分 | x40并行编程指南" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="A 汇编语言简介 | x40并行编程指南" />
+  <meta name="twitter:title" content="第二部分 | x40并行编程指南" />
   
   <meta name="twitter:description" content="在x40服务器上并行运算" />
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="nsight.html"/>
-<link rel="next" href="float.html"/>
+<link rel="prev" href="fma.html"/>
+<link rel="next" href="gpuintro.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -248,85 +248,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="assemble" class="section level1">
-<h1><span class="header-section-number">A</span> 汇编语言简介</h1>
-<p>要讲汇编语言，就不得不提计算机是如何工作的。众所周知，计算机（硬件）是看不懂你写的程序的。需要用编译器或者解释器将程序变成计算机能看懂的二进制码才可以。</p>
-<p>汇编语言其实是一种“助记符”。汇编语句和二进制机器码是一一对应的。相比于二进制机器码，汇编语言多少是可以读懂的。</p>
-<div id="基本操作" class="section level2">
-<h2><span class="header-section-number">A.1</span> 基本操作</h2>
-<p>CPU会做些什么事呢？基本就是通过内存地址从内存里取几个字节到自己的寄存器里，然后对各个寄存器进行一番操作，什么加减乘除啊移位啊与或非啊什么的，然后还能把结果再存到内存里。</p>
-<p>那么，条件判断呀调用函数呀是怎么实现的呢？条件判断是分为两步的，第一步做比较，然后一些特别的寄存器会根据比较结果设置为相应的值；第二步，根据一个或几个特别的寄存器里面的值是0或者1选择是否跳转到另一个位置。而跳转实际就是把指向当前指令的指针加或减一个合适的值，而这个指针的值其实也是保存在一个寄存器中的。函数调用呢，就是先把一些需要保护的寄存器内容暂存到内存里，然后在合适的寄存器或内存地址里设置好要传递的参数，并且把当前的指令指针保存到内存中，然后跳转到相应函数位置。函数执行完毕后再把返回值放到指定的寄存器或者内存位置，然后再把保存起来的指令指针恢复到寄存器里。关于哪些寄存器需要调用方保护，哪些需要被调用方保护，用哪些寄存器传递参数和返回值则取决于编程语言的调用约定。</p>
-<p>汇编语言中的数值拷贝（从内存到寄存器，寄存器到寄存器，寄存器到内存，立即数到寄存器等等）被称作“mov”，虽然事实上并不是移动，“mov”完后原来位置的信息并不会被消掉。</p>
-<blockquote>
-<p>立即数指的是直接有一个数字。从立即数到寄存器的“mov”相当于把寄存器设置成一个指定的值。</p>
-</blockquote>
-</div>
-<div id="神奇的装载有效地址" class="section level2">
-<h2><span class="header-section-number">A.2</span> 神奇的“装载有效地址”</h2>
-<p>有一条指令<code>lea</code>，是“load effective address”的缩写。这条指令本来是用于计算内存地址的，通过一个基地址，一个偏移量和每个元素的大小来计算出需要的地址。但是卑鄙的人类竟然动起了歪心思，用这条指令来做代数运算。</p>
-<p>举个例子，比如要计算一个整数乘以5再加上3，汇编代码有可能是这样的</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="assemble.html#cb35-1"></a>  <span class="ex">lea</span> 0x3(%rdi,%rdi,4), <span class="ex">%rax</span></span></code></pre></div>
-<p>然后rax寄存器中的值就等于rdi寄存器的值乘上5然后再加三。</p>
-<p>真正用于装载地址的时候，括号里面第一个值相当于基地址，第二个是偏移量，第三个是每一个偏移对应的字节数(只能是1,2,4,8)，括号前面的数字是以byte位单位的常数偏移量。</p>
-<p>所有编译器就发现了这东西完全可以用于装载地址以外的用途。上面的例子中，计算了rdi+rdi*4+3，也就是我们想要的乘5加3.</p>
-</div>
-<div id="c语言中的内联汇编" class="section level2">
-<h2><span class="header-section-number">A.3</span> c语言中的内联汇编</h2>
-<p><strong>不同编译器里使用内联汇编的方法可能有微小的不同。这里是gcc的情况</strong></p>
-<p>gcc中，内联汇编写在<code>__asm__</code>里面。如果在<code>__asm__</code>后加了<code>__volatile__</code>则表示要求编译器不要对这里面的汇编代码进行优化。</p>
-<p>这里用前面第一部分的AVX汇编举例</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="assemble.html#cb36-1"></a>__asm__ __volatile__(</span>
-<span id="cb36-2"><a href="assemble.html#cb36-2"></a>            <span class="st">&quot;movq %0, %%rax </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-3"><a href="assemble.html#cb36-3"></a>            <span class="st">&quot;movq %1, %%rbx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-4"><a href="assemble.html#cb36-4"></a>            <span class="st">&quot;movq %2, %%rcx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-5"><a href="assemble.html#cb36-5"></a>            <span class="st">&quot;movq %3, %%rdx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-6"><a href="assemble.html#cb36-6"></a>            <span class="st">&quot;movq %4, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-7"><a href="assemble.html#cb36-7"></a>            <span class="st">&quot;shr  $2, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-8"><a href="assemble.html#cb36-8"></a>            <span class="st">&quot;movq $0, %%r9  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-9"><a href="assemble.html#cb36-9"></a>            <span class="st">&quot;jmp  .check_%= </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-10"><a href="assemble.html#cb36-10"></a>            <span class="st">&quot;.loop_%=:         </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-11"><a href="assemble.html#cb36-11"></a>            <span class="st">&quot;shl $2, %%r9   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-12"><a href="assemble.html#cb36-12"></a>            <span class="st">&quot;leaq (%%rax, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-13"><a href="assemble.html#cb36-13"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm0       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-14"><a href="assemble.html#cb36-14"></a>            <span class="st">&quot;leaq (%%rbx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-15"><a href="assemble.html#cb36-15"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm1       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-16"><a href="assemble.html#cb36-16"></a>            <span class="st">&quot;leaq (%%rcx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-17"><a href="assemble.html#cb36-17"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm2       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-18"><a href="assemble.html#cb36-18"></a>            <span class="st">&quot;vmulpd %%ymm0, %%ymm1, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-19"><a href="assemble.html#cb36-19"></a>            <span class="st">&quot;vaddpd %%ymm2, %%ymm3, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-20"><a href="assemble.html#cb36-20"></a>            <span class="st">&quot;leaq (%%rdx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-21"><a href="assemble.html#cb36-21"></a>            <span class="st">&quot;vmovupd %%ymm3, (%%r10)       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-22"><a href="assemble.html#cb36-22"></a>            <span class="st">&quot;shr $2, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-23"><a href="assemble.html#cb36-23"></a>            <span class="st">&quot;add $1, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-24"><a href="assemble.html#cb36-24"></a>            <span class="st">&quot;.check_%=:                    </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-25"><a href="assemble.html#cb36-25"></a>            <span class="st">&quot;cmpq %%r8, %%r9               </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-26"><a href="assemble.html#cb36-26"></a>            <span class="st">&quot;jl .loop_%=                   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-27"><a href="assemble.html#cb36-27"></a>            :</span>
-<span id="cb36-28"><a href="assemble.html#cb36-28"></a>            :<span class="st">&quot;m&quot;</span>(a), <span class="st">&quot;m&quot;</span>(b), <span class="st">&quot;m&quot;</span>(c), <span class="st">&quot;m&quot;</span>(d), <span class="st">&quot;m&quot;</span>(N)</span>
-<span id="cb36-29"><a href="assemble.html#cb36-29"></a>            :<span class="st">&quot;%rax&quot;</span>, <span class="st">&quot;%rbx&quot;</span>, <span class="st">&quot;%rcx&quot;</span>, <span class="st">&quot;%rdx&quot;</span>, <span class="st">&quot;%r8&quot;</span>, <span class="st">&quot;%r9&quot;</span>, <span class="st">&quot;%r10&quot;</span>,</span>
-<span id="cb36-30"><a href="assemble.html#cb36-30"></a>             <span class="st">&quot;%ymm0&quot;</span>, <span class="st">&quot;%ymm1&quot;</span>, <span class="st">&quot;%ymm2&quot;</span>, <span class="st">&quot;%ymm3&quot;</span>, <span class="st">&quot;memory&quot;</span></span>
-<span id="cb36-31"><a href="assemble.html#cb36-31"></a>            );</span></code></pre></div>
-<p>首先，每行写一句只是为了看起来方便。在c语言中，一个长的字符串是可以换行的，分到每一行后分别加引号，中间没有逗号就会当作一个长的字符串。</p>
-<p>每一句后面加<code>\n\t</code>，否则多条汇编语句会在结果中连成一行，无法被汇编器读懂。</p>
-<blockquote>
-<p>汇编代码一行一句，不用分号</p>
-</blockquote>
-<p><code>__asm__</code>的括号里首先要写的就是我们要执行的汇编代码之后用冒号隔开三个部分，分别是要写入的变量，要读取的变量和发生变动的寄存器。</p>
-<p>变量前面引号里面“m”表示内存内容，用“r”则表示这个变量应该被放入寄存器（由编译器指定一个寄存器）。要写入的寄存器变量要写成“=r”。</p>
-<p>后面寄存器列表里面，把汇编代码中用到的寄存器都新进来就对了。似乎改变了内存的话要写“memory”，但没有验证过，反正写了不会出问题。</p>
-<p>在汇编代码里引用变量要用“%”，百分号后面的数字表示变量的编号（后面从写入变量到读取变量从0开始连续编号，数一数是第几个）。由于这里使用了百分号，使用寄存器就要多写一个百分号，比如“%eax”就要变成“%%eax”.</p>
-<p>在寄存器外面加一个括号表示把这个寄存器中的值当作一个地址，要的是这个地址的内存里面的东西（除了装载有效地址的时候这个只是当作一个地址，不会实际访问内存）。</p>
-<p>汇编代码中以冒号结尾的是一个标签，跳转的时候可以跳转到标签。最后编译好多二进制里是没有这个标签的，跳转会全部被翻译为跳转到相应的地址。在gcc的内联汇编里面，跳转标签要在后面加上<code>_%</code>。</p>
-<p>在<code>cmpq %%r8, %%r9</code>这句，比较了r9寄存器和r8寄存器中的值，并相应地设置了特别的用于比较和跳转的寄存器。后面紧跟的一句<code>jl .loop_%</code>，是说如果判出来大于，就要跳转，否则不跳。</p>
-</div>
+<div id="part2" class="section level1 unnumbered">
+<h1>第二部分</h1>
+<p>这一部分介绍GPU并行编程相关内容。</p>
+<p>如无特殊说明，示例代码均可在cuda11.0.3+gcc9.3.0环境下成功编译/运行。</p>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="nsight.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="float.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="fma.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="gpuintro.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -357,7 +290,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/yihui/bookdown-chinese/edit/master/07-append.Rmd",
+"link": "https://github.com/yihui/bookdown-chinese/edit/master/03-cuda.Rmd",
 "text": "编辑"
 },
 "history": {
