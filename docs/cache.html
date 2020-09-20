@@ -24,7 +24,7 @@
 <meta name="author" content="cucumber" />
 
 
-<meta name="date" content="2020-09-16" />
+<meta name="date" content="2020-09-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -205,6 +205,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
 <li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
 <li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+<li class="chapter" data-level="7.5" data-path="nsight.html"><a href="nsight.html#nsight-compute"><i class="fa fa-check"></i><b>7.5</b> Nsight Compute</a></li>
 </ul></li>
 <li class="appendix"><span><b>附录</b></span></li>
 <li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
@@ -284,20 +285,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li>查看L1缓存有多少组：</li>
 </ul>
-<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="cache.html#cb37-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/number_of_sets</span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="cache.html#cb40-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/number_of_sets</span></code></pre></div>
 <p>上面<code>cpu0</code>表示第一个cpu，服务器上<code>/sys/devices/system/cpu/</code>下会有96个cpu。不要担心，它们的缓存参数是一致的。<code>index0</code>表示该cpu里面的第一个缓存。经实验，<code>index0</code>和<code>index1</code>是一级缓存，分别是数据和指令缓存；<code>index2</code>是二级缓存；<code>index3</code>是三级缓存。二级和三级缓存都是部分数据/指令的。</p>
 <ul>
 <li>查看每一组有多少行：</li>
 </ul>
-<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="cache.html#cb38-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/ways_of_associativity</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="cache.html#cb41-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/ways_of_associativity</span></code></pre></div>
 <ul>
 <li>查看每一行有多少字节：</li>
 </ul>
-<div class="sourceCode" id="cb39"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="cache.html#cb39-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="cache.html#cb42-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size</span></code></pre></div>
 <ul>
 <li>查看缓存的大小</li>
 </ul>
-<div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="cache.html#cb40-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/size</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="cache.html#cb43-1"></a><span class="fu">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/size</span></code></pre></div>
 <p>其实也可以算出来。上面每一行字节数乘以每一组行数再乘以组数即可。</p>
 <ul>
 <li>其他信息也都在同意目录下，可以自行探索一下。</li>
@@ -306,16 +307,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="感受一下缓存不命中" class="section level2">
 <h2><span class="header-section-number">C.5</span> 感受一下缓存不命中</h2>
 <p>还是请回我们的muladd程序。据查，我们的cpu的一级数据缓存每一行有64个字节。已知每个double占8个字节，也就是说我们的一行缓存最多可以缓存8个双精度浮点数（如果它们在内存里是对齐到8字节的话（一般来说的确是这么对齐的））。这回我们每次跳跃地进行计算，每次加8，来尝试使得缓存无法命中：</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb41-1"><a href="cache.html#cb41-1"></a>__attribute__ ((noinline))</span>
-<span id="cb41-2"><a href="cache.html#cb41-2"></a><span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">double</span>* d,</span>
-<span id="cb41-3"><a href="cache.html#cb41-3"></a>            <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
-<span id="cb41-4"><a href="cache.html#cb41-4"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i,j;</span>
-<span id="cb41-5"><a href="cache.html#cb41-5"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8</span>; i++){</span>
-<span id="cb41-6"><a href="cache.html#cb41-6"></a>        <span class="cf">for</span>(j = i; j &lt; N; j+=<span class="dv">8</span>){</span>
-<span id="cb41-7"><a href="cache.html#cb41-7"></a>            d[j] = a[j] * b[j] + c[j];</span>
-<span id="cb41-8"><a href="cache.html#cb41-8"></a>        }</span>
-<span id="cb41-9"><a href="cache.html#cb41-9"></a>    }</span>
-<span id="cb41-10"><a href="cache.html#cb41-10"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb44-1"><a href="cache.html#cb44-1"></a>__attribute__ ((noinline))</span>
+<span id="cb44-2"><a href="cache.html#cb44-2"></a><span class="dt">void</span> muladd(<span class="dt">double</span>* a, <span class="dt">double</span>* b, <span class="dt">double</span>* c, <span class="dt">double</span>* d,</span>
+<span id="cb44-3"><a href="cache.html#cb44-3"></a>            <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> N){</span>
+<span id="cb44-4"><a href="cache.html#cb44-4"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">long</span> i,j;</span>
+<span id="cb44-5"><a href="cache.html#cb44-5"></a>    <span class="cf">for</span>(i = <span class="dv">0</span>; i &lt; <span class="dv">8</span>; i++){</span>
+<span id="cb44-6"><a href="cache.html#cb44-6"></a>        <span class="cf">for</span>(j = i; j &lt; N; j+=<span class="dv">8</span>){</span>
+<span id="cb44-7"><a href="cache.html#cb44-7"></a>            d[j] = a[j] * b[j] + c[j];</span>
+<span id="cb44-8"><a href="cache.html#cb44-8"></a>        }</span>
+<span id="cb44-9"><a href="cache.html#cb44-9"></a>    }</span>
+<span id="cb44-10"><a href="cache.html#cb44-10"></a>}</span></code></pre></div>
 <p>根据上一节的命令，我们查到CPU的一级缓存是32kB，也就是说最多可以存储4096个double，所以无论如何，这些数字是不可能全部缓存起来的。（这也是最开始为什么选择了8192作为数组维度）。</p>
 <p>显然，这个函数也是一样对每组a[i]，b[i]，c[i]进行一次计算。编译并运行，可以发现原来耗时约20s的程序，现在需要30s。</p>
 <p>二级缓存和三级缓存相对空间要大一些，而且是数据和指令共用的，一般就不对它们进行优化了（吧？）。</p>

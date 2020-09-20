@@ -24,7 +24,7 @@
 <meta name="author" content="cucumber" />
 
 
-<meta name="date" content="2020-09-16" />
+<meta name="date" content="2020-09-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -205,6 +205,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
 <li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
 <li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+<li class="chapter" data-level="7.5" data-path="nsight.html"><a href="nsight.html#nsight-compute"><i class="fa fa-check"></i><b>7.5</b> Nsight Compute</a></li>
 </ul></li>
 <li class="appendix"><span><b>附录</b></span></li>
 <li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
@@ -265,7 +266,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2><span class="header-section-number">A.2</span> 神奇的“装载有效地址”</h2>
 <p>有一条指令<code>lea</code>，是“load effective address”的缩写。这条指令本来是用于计算内存地址的，通过一个基地址，一个偏移量和每个元素的大小来计算出需要的地址。但是卑鄙的人类竟然动起了歪心思，用这条指令来做代数运算。</p>
 <p>举个例子，比如要计算一个整数乘以5再加上3，汇编代码有可能是这样的</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="assemble.html#cb35-1"></a>  <span class="ex">lea</span> 0x3(%rdi,%rdi,4), <span class="ex">%rax</span></span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="assemble.html#cb38-1"></a>  <span class="ex">lea</span> 0x3(%rdi,%rdi,4), <span class="ex">%rax</span></span></code></pre></div>
 <p>然后rax寄存器中的值就等于rdi寄存器的值乘上5然后再加三。</p>
 <p>真正用于装载地址的时候，括号里面第一个值相当于基地址，第二个是偏移量，第三个是每一个偏移对应的字节数(只能是1,2,4,8)，括号前面的数字是以byte位单位的常数偏移量。</p>
 <p>所有编译器就发现了这东西完全可以用于装载地址以外的用途。上面的例子中，计算了rdi+rdi*4+3，也就是我们想要的乘5加3.</p>
@@ -275,37 +276,37 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><strong>不同编译器里使用内联汇编的方法可能有微小的不同。这里是gcc的情况</strong></p>
 <p>gcc中，内联汇编写在<code>__asm__</code>里面。如果在<code>__asm__</code>后加了<code>__volatile__</code>则表示要求编译器不要对这里面的汇编代码进行优化。</p>
 <p>这里用前面第一部分的AVX汇编举例</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="assemble.html#cb36-1"></a>__asm__ __volatile__(</span>
-<span id="cb36-2"><a href="assemble.html#cb36-2"></a>            <span class="st">&quot;movq %0, %%rax </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-3"><a href="assemble.html#cb36-3"></a>            <span class="st">&quot;movq %1, %%rbx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-4"><a href="assemble.html#cb36-4"></a>            <span class="st">&quot;movq %2, %%rcx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-5"><a href="assemble.html#cb36-5"></a>            <span class="st">&quot;movq %3, %%rdx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-6"><a href="assemble.html#cb36-6"></a>            <span class="st">&quot;movq %4, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-7"><a href="assemble.html#cb36-7"></a>            <span class="st">&quot;shr  $2, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-8"><a href="assemble.html#cb36-8"></a>            <span class="st">&quot;movq $0, %%r9  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-9"><a href="assemble.html#cb36-9"></a>            <span class="st">&quot;jmp  .check_%= </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-10"><a href="assemble.html#cb36-10"></a>            <span class="st">&quot;.loop_%=:         </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-11"><a href="assemble.html#cb36-11"></a>            <span class="st">&quot;shl $2, %%r9   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-12"><a href="assemble.html#cb36-12"></a>            <span class="st">&quot;leaq (%%rax, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-13"><a href="assemble.html#cb36-13"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm0       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-14"><a href="assemble.html#cb36-14"></a>            <span class="st">&quot;leaq (%%rbx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-15"><a href="assemble.html#cb36-15"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm1       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-16"><a href="assemble.html#cb36-16"></a>            <span class="st">&quot;leaq (%%rcx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-17"><a href="assemble.html#cb36-17"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm2       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-18"><a href="assemble.html#cb36-18"></a>            <span class="st">&quot;vmulpd %%ymm0, %%ymm1, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-19"><a href="assemble.html#cb36-19"></a>            <span class="st">&quot;vaddpd %%ymm2, %%ymm3, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-20"><a href="assemble.html#cb36-20"></a>            <span class="st">&quot;leaq (%%rdx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-21"><a href="assemble.html#cb36-21"></a>            <span class="st">&quot;vmovupd %%ymm3, (%%r10)       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-22"><a href="assemble.html#cb36-22"></a>            <span class="st">&quot;shr $2, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-23"><a href="assemble.html#cb36-23"></a>            <span class="st">&quot;add $1, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-24"><a href="assemble.html#cb36-24"></a>            <span class="st">&quot;.check_%=:                    </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-25"><a href="assemble.html#cb36-25"></a>            <span class="st">&quot;cmpq %%r8, %%r9               </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-26"><a href="assemble.html#cb36-26"></a>            <span class="st">&quot;jl .loop_%=                   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
-<span id="cb36-27"><a href="assemble.html#cb36-27"></a>            :</span>
-<span id="cb36-28"><a href="assemble.html#cb36-28"></a>            :<span class="st">&quot;m&quot;</span>(a), <span class="st">&quot;m&quot;</span>(b), <span class="st">&quot;m&quot;</span>(c), <span class="st">&quot;m&quot;</span>(d), <span class="st">&quot;m&quot;</span>(N)</span>
-<span id="cb36-29"><a href="assemble.html#cb36-29"></a>            :<span class="st">&quot;%rax&quot;</span>, <span class="st">&quot;%rbx&quot;</span>, <span class="st">&quot;%rcx&quot;</span>, <span class="st">&quot;%rdx&quot;</span>, <span class="st">&quot;%r8&quot;</span>, <span class="st">&quot;%r9&quot;</span>, <span class="st">&quot;%r10&quot;</span>,</span>
-<span id="cb36-30"><a href="assemble.html#cb36-30"></a>             <span class="st">&quot;%ymm0&quot;</span>, <span class="st">&quot;%ymm1&quot;</span>, <span class="st">&quot;%ymm2&quot;</span>, <span class="st">&quot;%ymm3&quot;</span>, <span class="st">&quot;memory&quot;</span></span>
-<span id="cb36-31"><a href="assemble.html#cb36-31"></a>            );</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb39-1"><a href="assemble.html#cb39-1"></a>__asm__ __volatile__(</span>
+<span id="cb39-2"><a href="assemble.html#cb39-2"></a>            <span class="st">&quot;movq %0, %%rax </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-3"><a href="assemble.html#cb39-3"></a>            <span class="st">&quot;movq %1, %%rbx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-4"><a href="assemble.html#cb39-4"></a>            <span class="st">&quot;movq %2, %%rcx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-5"><a href="assemble.html#cb39-5"></a>            <span class="st">&quot;movq %3, %%rdx </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-6"><a href="assemble.html#cb39-6"></a>            <span class="st">&quot;movq %4, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-7"><a href="assemble.html#cb39-7"></a>            <span class="st">&quot;shr  $2, %%r8  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-8"><a href="assemble.html#cb39-8"></a>            <span class="st">&quot;movq $0, %%r9  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-9"><a href="assemble.html#cb39-9"></a>            <span class="st">&quot;jmp  .check_%= </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-10"><a href="assemble.html#cb39-10"></a>            <span class="st">&quot;.loop_%=:         </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-11"><a href="assemble.html#cb39-11"></a>            <span class="st">&quot;shl $2, %%r9   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-12"><a href="assemble.html#cb39-12"></a>            <span class="st">&quot;leaq (%%rax, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-13"><a href="assemble.html#cb39-13"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm0       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-14"><a href="assemble.html#cb39-14"></a>            <span class="st">&quot;leaq (%%rbx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-15"><a href="assemble.html#cb39-15"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm1       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-16"><a href="assemble.html#cb39-16"></a>            <span class="st">&quot;leaq (%%rcx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-17"><a href="assemble.html#cb39-17"></a>            <span class="st">&quot;vmovupd (%%r10), %%ymm2       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-18"><a href="assemble.html#cb39-18"></a>            <span class="st">&quot;vmulpd %%ymm0, %%ymm1, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-19"><a href="assemble.html#cb39-19"></a>            <span class="st">&quot;vaddpd %%ymm2, %%ymm3, %%ymm3 </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-20"><a href="assemble.html#cb39-20"></a>            <span class="st">&quot;leaq (%%rdx, %%r9, 8), %%r10  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-21"><a href="assemble.html#cb39-21"></a>            <span class="st">&quot;vmovupd %%ymm3, (%%r10)       </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-22"><a href="assemble.html#cb39-22"></a>            <span class="st">&quot;shr $2, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-23"><a href="assemble.html#cb39-23"></a>            <span class="st">&quot;add $1, %%r9                  </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-24"><a href="assemble.html#cb39-24"></a>            <span class="st">&quot;.check_%=:                    </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-25"><a href="assemble.html#cb39-25"></a>            <span class="st">&quot;cmpq %%r8, %%r9               </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-26"><a href="assemble.html#cb39-26"></a>            <span class="st">&quot;jl .loop_%=                   </span><span class="sc">\n\t</span><span class="st">&quot;</span></span>
+<span id="cb39-27"><a href="assemble.html#cb39-27"></a>            :</span>
+<span id="cb39-28"><a href="assemble.html#cb39-28"></a>            :<span class="st">&quot;m&quot;</span>(a), <span class="st">&quot;m&quot;</span>(b), <span class="st">&quot;m&quot;</span>(c), <span class="st">&quot;m&quot;</span>(d), <span class="st">&quot;m&quot;</span>(N)</span>
+<span id="cb39-29"><a href="assemble.html#cb39-29"></a>            :<span class="st">&quot;%rax&quot;</span>, <span class="st">&quot;%rbx&quot;</span>, <span class="st">&quot;%rcx&quot;</span>, <span class="st">&quot;%rdx&quot;</span>, <span class="st">&quot;%r8&quot;</span>, <span class="st">&quot;%r9&quot;</span>, <span class="st">&quot;%r10&quot;</span>,</span>
+<span id="cb39-30"><a href="assemble.html#cb39-30"></a>             <span class="st">&quot;%ymm0&quot;</span>, <span class="st">&quot;%ymm1&quot;</span>, <span class="st">&quot;%ymm2&quot;</span>, <span class="st">&quot;%ymm3&quot;</span>, <span class="st">&quot;memory&quot;</span></span>
+<span id="cb39-31"><a href="assemble.html#cb39-31"></a>            );</span></code></pre></div>
 <p>首先，每行写一句只是为了看起来方便。在c语言中，一个长的字符串是可以换行的，分到每一行后分别加引号，中间没有逗号就会当作一个长的字符串。</p>
 <p>每一句后面加<code>\n\t</code>，否则多条汇编语句会在结果中连成一行，无法被汇编器读懂。</p>
 <blockquote>

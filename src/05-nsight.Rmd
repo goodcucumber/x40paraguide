@@ -45,4 +45,24 @@ knitr::include_graphics("figs/nsight2.png")
 knitr::include_graphics("figs/nsight3.png")
 ```
 
+## Nsight Compute
+
+Nsight Compute可以更细致地分析CUDA程序的行为。用Nsight Compute远程连接到服务器似乎不太好操作，可以直接在服务器上使用Nsight Compute。
+
+首先，需要使用"-Y"参数来连接服务器ssh。（"-Y"表示传输图形而不只是文字信息）
+
+在服务器上，直接运行（前提是加载了`cuda`模块）
+
+```{bash, eval=F}
+nv-nsight-cu
+```
+
+即可打开界面。
+
+Nsight Compute可以查看程序的缓存命中率，各种指令的使用情况，核心占用率等等信息。具体使用方法参见:
+
++ [Nvidia的Nsight Compute使用教程](https://docs.nvidia.com/nsight-compute/NsightCompute/index.html)
++ [Nvidia的Nsight Compute 命令行工具使用教程](https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html)
+
+
 

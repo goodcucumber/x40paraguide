@@ -24,7 +24,7 @@
 <meta name="author" content="cucumber" />
 
 
-<meta name="date" content="2020-09-16" />
+<meta name="date" content="2020-09-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -205,6 +205,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
 <li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
 <li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+<li class="chapter" data-level="7.5" data-path="nsight.html"><a href="nsight.html#nsight-compute"><i class="fa fa-check"></i><b>7.5</b> Nsight Compute</a></li>
 </ul></li>
 <li class="appendix"><span><b>附录</b></span></li>
 <li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
@@ -761,7 +762,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="缓存和共享内存的分配" class="section level2">
 <h2><span class="header-section-number">6.3</span> 缓存和共享内存的分配</h2>
-<p><strong><em>这一节的内容我也没有尝试过，但是原则上应该是可行的。</em></strong></p>
 <p>共享内存是似乎是直接放在高速缓存中的。cuda允许调整共享内存和L1高速缓存的比例。</p>
 <p>通过<code>cudaFuncSetCacheConfig</code>函数可以调整。函数的第一个参数是一个kernel函数（也就是<code>__global__</code>函数），第二个参数可以是</p>
 <ul>
@@ -770,6 +770,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>cudaFuncCachePreferL1 更多的L1高速缓存</li>
 <li>cudaFuncCachePreferEqual 平均分配</li>
 </ul>
+<p>例如：</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="cuda-adv.html#cb35-1"></a>cudaFuncSetCacheConfig(my_kernel, cudaFuncCachePreferShared);</span></code></pre></div>
+<p>如果不使用共享内存的话，更多L1缓存可能会带来更高的缓存命中率，提高程序性能。</p>
+<p>如果想要调整整个程序的共享内存/缓存的分配情况，可以使用<code>cudaDeviceSetCacheConfig</code>函数。该函数只接受一个参数，传入上面提到的四种分配方式的枚举值之一即可。</p>
+<p>例如：</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="cuda-adv.html#cb36-1"></a>cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);</span></code></pre></div>
 </div>
 <div id="cuadv_sum" class="section level2">
 <h2><span class="header-section-number">6.4</span> 本章小结</h2>

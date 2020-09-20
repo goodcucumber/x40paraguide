@@ -24,7 +24,7 @@
 <meta name="author" content="cucumber" />
 
 
-<meta name="date" content="2020-09-16" />
+<meta name="date" content="2020-09-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -205,6 +205,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.2" data-path="nsight.html"><a href="nsight.html#连接到服务器"><i class="fa fa-check"></i><b>7.2</b> 连接到服务器</a></li>
 <li class="chapter" data-level="7.3" data-path="nsight.html"><a href="nsight.html#分析程序"><i class="fa fa-check"></i><b>7.3</b> 分析程序</a></li>
 <li class="chapter" data-level="7.4" data-path="nsight.html"><a href="nsight.html#查看报告"><i class="fa fa-check"></i><b>7.4</b> 查看报告</a></li>
+<li class="chapter" data-level="7.5" data-path="nsight.html"><a href="nsight.html#nsight-compute"><i class="fa fa-check"></i><b>7.5</b> Nsight Compute</a></li>
 </ul></li>
 <li class="appendix"><span><b>附录</b></span></li>
 <li class="chapter" data-level="A" data-path="assemble.html"><a href="assemble.html"><i class="fa fa-check"></i><b>A</b> 汇编语言简介</a><ul>
@@ -290,6 +291,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 图 7.3: nsight_rep
 </p>
 </div>
+</div>
+<div id="nsight-compute" class="section level2">
+<h2><span class="header-section-number">7.5</span> Nsight Compute</h2>
+<p>Nsight Compute可以更细致地分析CUDA程序的行为。用Nsight Compute远程连接到服务器似乎不太好操作，可以直接在服务器上使用Nsight Compute。</p>
+<p>首先，需要使用“-Y”参数来连接服务器ssh。（“-Y”表示传输图形而不只是文字信息）</p>
+<p>在服务器上，直接运行（前提是加载了<code>cuda</code>模块）</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="nsight.html#cb37-1"></a><span class="ex">nv-nsight-cu</span></span></code></pre></div>
+<p>即可打开界面。</p>
+<p>Nsight Compute可以查看程序的缓存命中率，各种指令的使用情况，核心占用率等等信息。具体使用方法参见:</p>
+<ul>
+<li><a href="https://docs.nvidia.com/nsight-compute/NsightCompute/index.html">Nvidia的Nsight Compute使用教程</a></li>
+<li><a href="https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html">Nvidia的Nsight Compute 命令行工具使用教程</a></li>
+</ul>
 
 
 </div>

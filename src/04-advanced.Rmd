@@ -555,8 +555,6 @@ cudaStreamAddCallback(stream1, my_callback, (void*)msg, 0);
 
 ## 缓存和共享内存的分配
 
-***这一节的内容我也没有尝试过，但是原则上应该是可行的。***
-
 共享内存是似乎是直接放在高速缓存中的。cuda允许调整共享内存和L1高速缓存的比例。
 
 通过`cudaFuncSetCacheConfig`函数可以调整。函数的第一个参数是一个kernel函数（也就是`__global__`函数），第二个参数可以是
@@ -565,6 +563,22 @@ cudaStreamAddCallback(stream1, my_callback, (void*)msg, 0);
 + cudaFuncCachePreferShared 更多的共享内存
 + cudaFuncCachePreferL1     更多的L1高速缓存
 + cudaFuncCachePreferEqual  平均分配
+
+例如：
+
+```{c, eval=F}
+cudaFuncSetCacheConfig(my_kernel, cudaFuncCachePreferShared);
+```
+
+如果不使用共享内存的话，更多L1缓存可能会带来更高的缓存命中率，提高程序性能。
+
+如果想要调整整个程序的共享内存/缓存的分配情况，可以使用`cudaDeviceSetCacheConfig`函数。该函数只接受一个参数，传入上面提到的四种分配方式的枚举值之一即可。
+
+例如：
+
+```{c, eval=F}
+cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
+```
 
 ## 本章小结 {#cuadv_sum}
 
