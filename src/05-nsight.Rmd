@@ -64,5 +64,5 @@ Nsight Compute可以查看程序的缓存命中率，各种指令的使用情况
 + [Nvidia的Nsight Compute使用教程](https://docs.nvidia.com/nsight-compute/NsightCompute/index.html)
 + [Nvidia的Nsight Compute 命令行工具使用教程](https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html)
 
-
+***此功能需要管理员权限。尝试了开启非管理员使用的选项，但似乎会导致系统不稳定。如果本地有CUDA环境请在本地使用Nsight Compute调试。如果需要在服务器上使用，请联系管理员。***
 
