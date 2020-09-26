@@ -8,10 +8,10 @@ bookdown::gitbook:
       after: |
         <li><a href="https://bookdown.org" target="blank">本书由 bookdown 强力驱动</a></li>
     download: [pdf, epub]
-    edit: https://github.com/yihui/bookdown-chinese/edit/master/%s
     sharing:
       github: yes
       facebook: no
+      twitter: no
 bookdown::pdf_book:
   includes:
     in_header: latex/preamble.tex
