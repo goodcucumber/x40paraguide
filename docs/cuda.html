@@ -362,7 +362,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>__host__</code></li>
 <li>还有别的不常用的，可以参考cuda runtime文档</li>
 </ul>
-<p><code>__global__</code>的函数可以被CPU或GPU调用，在GPU上执行。（在GPU上调用<code>__global__</code>函数似乎是在并行地运行并行程序（就是套娃🤣）。一般还是从CPU调用比较常见。）这种函数被成为“kernel”。</p>
+<p><code>__global__</code>的函数可以被CPU或GPU调用，在GPU上执行。（在GPU上调用<code>__global__</code>函数似乎是在并行地运行并行程序（就是套娃🤣）。一般还是从CPU调用比较常见。）这种函数被称为“kernel”。</p>
 <p><code>__device__</code>的函数只可以被GPU调用，在GPU上执行。这种函数一般会被编译器展开到调用处。</p>
 <p><code>__host__</code>的函数只可以被CPU调用，在CPU上执行。和不加标签一样。</p>
 <p><code>__global__</code>函数必须是返回值为<code>void</code>的函数，<code>__device__</code>和<code>__host__</code>则无要求。</p>
