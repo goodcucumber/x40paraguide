@@ -1,6 +1,5 @@
 # (PART) GPGPU {-} 
 
-
 # 第二部分 {#part2 .unnumbered}
 
 这一部分介绍GPU并行编程相关内容。
@@ -428,6 +427,196 @@ extern "C"{
 ```
 
 
+
+## 使用 cmake 编译 {#cuda_cmake}
+
+使用 cmake 可以更方便地编译同时包含 cuda 和 root 的程序，不需要自己处理复杂的依赖关系，前提是有一定的 cmake 基础。这里必须推荐教程 [An Introduction to Modern CMake](#https://cliutils.gitlab.io/modern-cmake/)，恳求大家放弃继续手工制作 Makefile。回归正题，我依照上面的思路，将使用 cuda 的部分编译成可以链接的库（这里会选择静态库，就是在编译时链接的，以和上边的动态库例子区分），然后再在纯 C++ 的文件中包含该库。这个库就命名为 multi_add 好了，那么对于一个库，我们一般都是先写头文件 multi_add.h，如下。
+
+```cpp
+#ifndef __MULTI_ADD_CUDA_H__
+#define __MULTI_ADD_CUDA_H__
+void MultiAdd(double *a, double *b, double *c, double *d, unsigned int n);
+#endif // __MULTI_ADD_CUDA_H__
+```
+
+这个头文件仅仅包含一个函数  `MultiAdd` 的声明，这个函数在前面已经见过了，不是什么新鲜东西。接下来是编写 `MultiAdd` 函数的实现，因为是使用 cuda 计算的，所以放在文件 multi_add.cu 中，如下。
+
+```c++
+#include <cuda_runtime.h>
+
+#include "multi_add.h"
+
+__global__
+void MultiAddCuda(double *a, double *b, double *c, double *d, unsigned int n) {
+	unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index < n) {
+        // 把循环放在这里是为了避免多次重复申请、释放显存空间
+        for (int loop = 0; loop < 100'000; ++loop) {
+			d[index] = a[index] * b[index] + c[index];
+	}
+}
+
+void MultiAdd(double *a, double *b, double *c, double *d, unsigned int n) {
+	double *cua, *cub, *cuc, *cud;
+
+	cudaMalloc(&cua, n*sizeof(double));
+	cudaMalloc(&cub, n*sizeof(double));
+	cudaMalloc(&cuc, n*sizeof(double));
+	cudaMalloc(&cud, n*sizeof(double));
+
+	cudaMemcpy(cua, a, n*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(cub, b, n*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(cuc, c, n*sizeof(double), cudaMemcpyHostToDevice);
+
+	MultiAddCuda<<<(n+255)/256, 256>>>(cua, cub, cuc, cud, n);
+
+	cudaMemcpy(d, cud, n*sizeof(double), cudaMemcpyDeviceToHost);
+
+	cudaFree(cua);
+	cudaFree(cub);
+	cudaFree(cuc);
+	cudaFree(cud);
+}
+```
+
+在 GPU 中运行的函数是 `MultiAddCuda` 其中简单地运行了乘法和加法。在这外面套了一个 `MultiAdd` 函数，这个函数调用了 GPU 中运行的函数 `MultiAddCuda` ，并在调用前申请 GPU 空间、复制内存，调用后复制内存、释放空间。总之，multi_add.cu 和 multi_add.h 两个文件组合一下就是一个库的源码了。那么有了这个库，就可以调用了，在下面的文件 multi_add_cuda.cpp 中将调用这个库。
+
+```cpp
+#include <chrono>
+#include <iostream>
+#include <random>
+
+#include "multi_add.h"
+
+// using std::chrono library to check time cost
+using namespace std::chrono;
+
+// size of array
+const size_t size = 8192;
+
+int main() {
+    // allocate spaces with c++ method
+	double *a = new double[size];
+	double *b = new double[size];
+	double *c = new double[size];
+	double *d = new double[size];
+
+    // generate random float numbers with c++ method
+	std::random_device rd;
+	std::mt19937 generator(rd());
+	std::uniform_real_distribution<> distribution(0.999, 1.001);
+	for (size_t i = 0; i < size; ++i) {
+		a[i] = distribution(generator);
+		b[i] = distribution(generator);
+		c[i] = distribution(generator);
+        // give initialize values for check
+		d[i] = -10.0;
+	}
+
+	// record the start time with c++ method
+	auto start = steady_clock::now();
+
+	// 把用来浪费时间的循环 100,000 次放到了 cuda 的函数内部，避免多次重复 malloc 和 free 显存
+	MultiAdd(a, b, c, d, size);
+
+	// record the stop time with c++ method
+	auto stop = steady_clock::now();
+    // calculate the duration
+	std::cout << "Cost " << duration_cast<milliseconds>(stop - start).count() << " ms.\n";
+
+	// check result
+	std::cout << d[0] << " " << d[1] << " " << d[2] << "\n";
+
+    // free spaces with c++ method
+	delete a;
+	delete b;
+	delete c;
+	delete d;
+
+	return 0;
+}
+
+```
+
+上面这个文件实际上是和之前的例子一样的，但是使用了 C++ 的方法，也可以和之前的使用纯粹的 C 的例子进行对比，流程依然是申请空间、产生随机初值、开始计时、调用 GPU 计算、计算运行时间、输出结果、释放空间。下面将是本小节的主要内容，即使用 cmake 帮助我们编译程序。和 C、C++ 一样，cmake 也是一门编程语言（这也是大家觉得难以入门的原因之一），所以 cmake 也需要“源文件”，一般命名为 CMakeLists.txt。在代码中，一般每一级目录都需要一个 CMakeLists.txt 来说明这个目录下的文件应当如何编译。在这个例子中，简单的 CMakeLists.txt 如下。
+
+```cmake
+# 下面一句声明需要的 cmake 的最低版本，这里写的是 3.10，这是因为 x40 服务器的 cmake 版本
+# 就是 3.10。本人强力推荐使用更新的版本，以对编译器（无论是 gcc 还是 nvcc）有更好的支持。
+cmake_minimum_required(VERSION 3.10)
+
+# 下面一句声明这一个项目，我特意分成多行来写，每行声明了该项目的一个特性。
+# 第一行参数只有一个名字，x40-cuda-example，是这个项目的名字
+# 第二行参数是这个项目的版本，版本号 1.0.0
+# 第三行参数是项目的简介，用来展示如何使用cuda
+# 第四行参数是项目中使用到的语言，分别是 C++ 和 CUDA，这一行很重要，cmake 根据这行
+# 检查 C++ 和 CUDA 的编译环境
+project(
+	x40-cuda-example
+	VERSION 1.0.0
+	DESCRIPTION "A project to show how to use cuda in x40 server."
+	LANGUAGES CXX CUDA
+)
+
+# 检查 CUDA 的编译环境是否合理
+include(CheckLanguage)
+check_language(CUDA)
+
+# 设置 CUDA 的架构，实际上是使用的 GPU 的架构。GPU 的架构在 NVIDIA 官网上都有，
+# 就是发布会上说的 Maxwell、Pascal、Volta、Turing、Ampere、Ada、Hopper 架构
+# 服务器的显卡是 TITAN V，是 Volta 架构，对应的参数是 70 或者 72，即下面写的
+# real-72 中 72 的含义。因为 NVIDIA 的显卡是向下兼容的，所以使用 Maxwell 或者
+# Pascal 架构也是可以的，对应的参数是 50、52、53 或者 60、61、62。当然，使用
+# 最新的对应版本应该能够得到更好的性能。而 real 表示的是真实的 GPU，相对的也有
+# 虚拟的 GPU，具体含义可以查看 NVIDIA 的文档，这里不展开说明。
+# 另外，下面这句在低版本的 cmake 中是可选的，但是在 3.18 以上版本是必须的。
+set(CMAKE_CUDA_ARCHITECTURES 72-real)
+
+# 下面这句添加了一个库 multi_add，这将编译出静态库 libmulti_add.a, 因为 cmake
+# 默认是静态库，如果要编译动态库，使用 add_library(multi_add SHARED multi_add.cu)
+# 这句话第一个参数是库的名字，就是自己想个名字写上去，第二个参数是包含的源文件，
+# 在这里源文件就是 multi_add.cu 这个包含要在 GPU 中运行的函数的源文件
+add_library(multi_add multi_add.cu)
+
+# 添加可执行文件，就是最后可以 ./ 运行的文件，第一个参数是文件名，
+# 这里写的是 multi_add_cuda，那么之后就可 ./multi_add_cuda 运行文件
+# 后面的参数都是源文件，这里分别是包含 main 函数的 multi_add_cuda.cpp
+# 和包含库函数的头文件 multi_add.h
+add_executable(multi_add_cuda multi_add_cuda.cpp multi_add.h)
+# 添加可执行文件的包含路径
+# 第一个参数是对哪个目标添加，我们要对最后编译出来的可执行文件添加,
+# 所以目标是 multi_add_cuda
+# 第二个参数是继承选项，可选 PUBLIC、PRIVATE、INTERFACE，如果不知道选哪个
+# 就都选 PUBLIC 一般不会错，这里使用 PRIVATE 是因为这是一个可执行文件，
+# 一般不会被继续继承，所以包含路径也不应该被继承，如果是库文件一般选择 PUBLIC
+# 第三个参数开始就是包含的路径具体是什么，这里使用了 cmake 的预定义变量，
+# ${PROJECT_SOURCE_DIR} 指的是项目根目录，根据实际情况调整
+# 如果有过个包含路径，就在后面第四、第五……个参数中写上
+target_include_directories(multi_add_cuda PRIVATE ${PROJECT_SOURCE_DIR})
+# 添加依赖库，这里就是可执行文件 multi_add_cuda 依赖用 cuda 写的库 multi_add
+# 第一个参数和上一行一样，添加的目标，依然是最后的可执行文件
+# 第二个参数是继承选项，同样选择 PRIVATE
+# 第三个参数开始是依赖的库名字，在这里就是之前想的 multi_add 库
+# 如果依赖多个库，直接在后面添加第四、第五……个参数
+target_link_libraries(multi_add_cuda PRIVATE multi_add)
+```
+
+写好之后就是编译运行了，在新版本的 cmake 中可以方便地使用 `cmake -S . -B build` 新建一个 build 文件夹，并在 build 中配置，然后输入 `cmake --build build` 来开始 make，即正式的编译，这一步会自动调用 gcc 和 nvcc。第一步只有第一次或者修改了 CMakeLists.txt 后需要，之后如果只是修改 C++ 或者 CUDA 的源文件，只需要输入第二部的指令即可，也可以打开 build 文件夹，执行 `make` 编译，所以 cmake 本质是帮你写 Makefile。总之就是下面两句
+
+```bash
+cmake -S . -B build
+cmake --build buil
+```
+
+但是旧版本的，比如服务器里面的不允许这样，需要自己手动创建 build 文件夹，并在build 文件夹中配置，如下
+
+```bash
+mkdir build; cd build; cmake ..
+make
+```
+
+这里也写成两行的结构，和前面新版的例子是对应的。
+
 ## 本章小结 {#cudabase_sum}
 
 感觉怎么样？有点似懂非懂？要不尝试翻回来再看看代码，自己改一改试一试，有没有觉得稍微明白一点了？可以试着改一改thread和block的结构，看看运行效率有怎样的变化。
@@ -472,6 +661,11 @@ if(err != cudaSuccess){
 
 **问：我是使用printf法来debug的那种选手怎么办？**    
 没关系，kernel函数里可以使用printf。但是要注意，在kernel里用printf的时候不要把grid和block设置得太大，否则你会得到铺天盖地的打印信息。（也可以在kernel里面判断，只有在特定block的特定thread打印信息也是可行的）
+
+--------
+
+**问：cmake 这么复杂我为什么要用它？make 甚至直接 gcc 和 nvcc 不香吗？**    
+当你的代码结构很简单时当然觉得 cmake 复杂，当你的代码结构复杂时才会觉得 cmake 真香。使用 make 和 gcc、nvcc 最大的弊端在于，大部分使用的人并不能搞明白各种库的依赖关系，也搞不清楚库的链接的问题。
 
 --------
 
